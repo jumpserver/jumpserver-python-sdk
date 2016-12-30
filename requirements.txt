@@ -1,0 +1,3 @@
+dotmap==1.2.14
+paramiko==2.0.2
+requests==2.11.1
