@@ -5,6 +5,8 @@ import os
 import sys
 import logging
 
+__version__ = '0.0.1'
+
 formatter = logging.Formatter(fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                               datefmt='%a, %d %b %Y %H:%M:%S')
 handler = logging.StreamHandler()

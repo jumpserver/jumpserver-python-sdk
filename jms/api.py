@@ -27,7 +27,7 @@ from .utils import sort_assets, PKey
 from .compat import builtin_str
 
 
-_USER_AGENT = 'app-sdk'
+_USER_AGENT = 'jms-sdk-py'
 
 
 class Request(object):
