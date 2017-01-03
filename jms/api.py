@@ -104,7 +104,12 @@ class ApiRequest(object):
                 raise ValueError('Require auth visit')
             else:
                 self._auth.sign_request(req)
-        return self.parser_result(req.request())
+        try:
+            result = req.request()
+            return self.parser_result(result)
+        except (requests.ConnectionError, requests.ConnectTimeout):
+            logging.warning('Connect with service error')
+            return {}
 
     def get(self, *args, **kwargs):
         kwargs['method'] = 'get'
@@ -136,20 +141,25 @@ class AppAuthMixin(object):
 
     @staticmethod
     def save_access_key(access_key_id, access_key_secret, key_path):
-        with open(key_path, b'w') as f:
+        with open(key_path, 'w') as f:
             f.write('{0}:{1}'.format(access_key_id, access_key_secret))
 
     def load_access_key_from_f(self, f):
-        if isinstance(f, builtin_str) and os.path.isfile(f):
+        if isinstance(f, (bytes, str, unicode)) and os.path.isfile(f):
             f = open(f)
+        else:
+            print('Return 1')
+            return None, None
 
         for line in f:
             if not line.strip().startswith('#'):
-                self.access_key_id, self.access_key_secret = line.strip().split(':')
-                break
+                try:
+                    self.access_key_id, self.access_key_secret = line.strip().split(':')
+                    break
+                except ValueError:
+                    pass
 
-        if self.access_key_id is None or self.access_key_secret is None:
-            raise IOError('Load access key error')
+        f.close()
         return self.access_key_id, self.access_key_secret
 
 
@@ -258,20 +268,29 @@ class UserService(ApiRequest):
         self.token = ''
 
     def login(self, username=None, password=None,
-              public_key=None, login_type=''):
+              public_key=None, login_type='', remote_addr=''):
+        """
+        :param username:
+        :param password:
+        :param public_key:
+        :param login_type:  'W': Web, 'T': Terminal, 'WT': WebTerminal
+        :return:
+        """
         data = {
             'username': username,
             'password': password,
             'public_key': public_key,
             'login_type': login_type,
+            'remote_addr': remote_addr,
         }
         r, content = self.post('user-auth', data=data, use_auth=False)
         if r.status_code == 200:
             self.token = content.token
             self.user = content.user
             self.auth(self.token)
+            return self.user, self.token
         else:
-            logging.warning('User %s auth failed' % username)
+            return (None, None)
 
     def auth(self, token=None):
         self._auth = Auth(token=token)
