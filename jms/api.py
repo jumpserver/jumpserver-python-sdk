@@ -24,7 +24,6 @@ from dotmap import DotMap
 
 from . import Auth, URL_MAP
 from .utils import sort_assets, PKey
-from .compat import builtin_str
 
 
 _USER_AGENT = 'jms-sdk-py'
@@ -128,46 +127,17 @@ class ApiRequest(object):
         return self.request(*args, **kwargs)
 
 
-class AppAuthMixin(object):
+class AppService(ApiRequest):
+    def __init__(self, *args, **kwargs):
+        super(AppService, self).__init__(*args, **kwargs)
+        self.access_key_id = None
+        self.access_key_secret = None
+
     def auth(self, access_key_id=None, access_key_secret=None):
         self._auth = Auth(access_key_id=access_key_id,
                           access_key_secret=access_key_secret)
         self.access_key_id = access_key_id
         self.access_key_secret = access_key_secret
-
-    def auth_from_f(self, f):
-        access_key_id, access_key_secret = self.load_access_key_from_f(f)
-        self.auth(access_key_id=access_key_id, access_key_secret=access_key_secret)
-
-    @staticmethod
-    def save_access_key(access_key_id, access_key_secret, key_path):
-        with open(key_path, 'w') as f:
-            f.write('{0}:{1}'.format(access_key_id, access_key_secret))
-
-    def load_access_key_from_f(self, f):
-        if isinstance(f, (bytes, str, unicode)) and os.path.isfile(f):
-            f = open(f)
-        else:
-            print('Return 1')
-            return None, None
-
-        for line in f:
-            if not line.strip().startswith('#'):
-                try:
-                    self.access_key_id, self.access_key_secret = line.strip().split(':')
-                    break
-                except ValueError:
-                    pass
-
-        f.close()
-        return self.access_key_id, self.access_key_secret
-
-
-class AppService(ApiRequest, AppAuthMixin):
-    def __init__(self, *args, **kwargs):
-        super(AppService, self).__init__(*args, **kwargs)
-        self.access_key_id = None
-        self.access_key_secret = None
 
     def terminal_register(self):
         r, content = self.post('terminal-register', data={'name': self.app_name}, use_auth=False)
@@ -274,6 +244,7 @@ class UserService(ApiRequest):
         :param password:
         :param public_key:
         :param login_type:  'W': Web, 'T': Terminal, 'WT': WebTerminal
+        :param remote_addr: Remote user login url except app addr
         :return:
         """
         data = {
@@ -290,7 +261,7 @@ class UserService(ApiRequest):
             self.auth(self.token)
             return self.user, self.token
         else:
-            return (None, None)
+            return None, None
 
     def auth(self, token=None):
         self._auth = Auth(token=token)
@@ -306,7 +277,6 @@ class UserService(ApiRequest):
     def get_my_assets(self):
         r, content = self.get('my-assets', use_auth=True)
         if r.status_code == 200:
-            print(content)
             assets = content
         else:
             assets = []
