@@ -19,9 +19,12 @@ class AppMixin(object):
         if env is None and self.config.get('ACCESS_KEY_ENV'):
             env = self.config.get('ACCESS_KEY_ENV')
         if env and isinstance(env, six.string_types):
-            access_key = os.environ.get(env).split(delimiter)
-            if len(access_key) == 2:
-                return access_key
+            try:
+                access_key = os.environ.get(env).split(delimiter)
+                if len(access_key) == 2:
+                    return access_key
+            except AttributeError:
+                pass
         raise LoadAccessKeyError
 
     def load_access_key_from_config(self, delimiter=':'):
@@ -102,6 +105,7 @@ class AppMixin(object):
         if access_key is None or None in access_key:
             access_key = self.register()
         if access_key and len(access_key) == 2:
+            logging.info('Using access key id: %s' % access_key[0])
             self.app_service.auth(*access_key)
 
     def check_auth(self):
