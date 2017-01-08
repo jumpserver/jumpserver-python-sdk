@@ -108,9 +108,6 @@ class AppMixin(object):
             logging.info('Using access key id: %s' % access_key[0])
             self.app_service.auth(*access_key)
 
-    def check_auth(self):
-        result = self.app_service.terminal_heatbeat()
-        return result
 
     def heatbeat(self):
         def _keep():

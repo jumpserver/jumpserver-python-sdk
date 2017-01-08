@@ -3,8 +3,10 @@
 #
 
 from __future__ import unicode_literals, absolute_import
+
 import os
 import json
+import datetime
 import base64
 import logging
 
@@ -41,7 +43,6 @@ class Request(object):
                  headers=None, content_type='application/json', app_name=''):
         self.url = url
         self.method = method
-        self.data = data
         self.params = params or {}
         self.result = None
 
@@ -53,7 +54,9 @@ class Request(object):
         self.headers['Content-Type'] = content_type
         if data is None or not isinstance(data, dict):
             data = {}
-        self.data = json.dumps(data)
+        if isinstance(data, DotMap):
+            data = data.toDict()
+        self.data = json.dumps(dict(data))
 
         if 'User-Agent' not in self.headers:
             if app_name:
@@ -156,7 +159,14 @@ class AppService(ApiRequest):
         else:
             return False
 
+    def check_auth(self):
+        result = self.terminal_heatbeat()
+        return result
+
     def get_system_user_auth_info(self, system_user):
+        if isinstance(system_user, dict) and not isinstance(system_user, DotMap):
+            system_user = DotMap(system_user)
+
         r, content = self.get('system-user-auth-info', pk=system_user.id)
         if r.status_code == 200:
             password = content.password
@@ -192,7 +202,11 @@ class AppService(ApiRequest):
             "date_start": data.date_start.strftime("%Y-%m-%d %H:%M:%S"),
         }
         """
-        data.date_start = data.date_start.strftime("%Y-%m-%d %H:%M:%S")
+        if isinstance(data, dict) and not isinstance(data, DotMap):
+            data = DotMap(data)
+
+        if isinstance(data.date_start, datetime.datetime):
+            data.date_start = data.date_start.strftime("%Y-%m-%d %H:%M:%S")
         data.was_failed = 1 if data.was_failed else 0
 
         r, content = self.post('send-proxy-log', data=data, use_auth=True)
