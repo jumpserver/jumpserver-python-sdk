@@ -10,10 +10,9 @@ from .exceptions import LoadAccessKeyError
 
 
 class AppMixin(object):
-    def __init__(self):
-        self.user_service = None
-        self.app_service = None
-        self.config = None
+    user_service = None
+    app_service = None
+    config = None
 
     def load_access_key_from_env(self, env=None, delimiter=':'):
         if env is None and self.config.get('ACCESS_KEY_ENV'):
@@ -107,7 +106,6 @@ class AppMixin(object):
         if access_key and len(access_key) == 2:
             logging.info('Using access key id: %s' % access_key[0])
             self.app_service.auth(*access_key)
-
 
     def heatbeat(self):
         def _keep():
