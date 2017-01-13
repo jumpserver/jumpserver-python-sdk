@@ -7,10 +7,12 @@ import threading
 import base64
 import calendar
 import time
-from collections import OrderedDict
+import datetime
+import pytz
 from email.utils import formatdate
 
 import paramiko
+from dotmap import DotMap
 try:
     import cStringIO as StringIO
 except ImportError:
@@ -120,21 +122,35 @@ def sort_assets(assets, order_by='hostname'):
 
 
 class PKey(object):
-    def __init__(self, key_string):
-        self.key_string = key_string
-
-    @property
-    def pkey(self):
+    @classmethod
+    def from_string(cls, key_string):
         try:
-            pkey = paramiko.RSAKey(file_obj=StringIO.StringIO(self.key_string))
+            pkey = paramiko.RSAKey(file_obj=StringIO.StringIO(key_string))
             return pkey
         except paramiko.SSHException:
             try:
-                pkey = paramiko.DSSKey(file_obj=StringIO.StringIO(self.key_string))
+                pkey = paramiko.DSSKey(file_obj=StringIO.StringIO(key_string))
                 return pkey
             except paramiko.SSHException:
                 return None
 
-    @classmethod
-    def from_string(cls, key_string):
-        return cls(key_string=key_string).pkey
+
+def from_string(cls, key_string):
+    return cls(key_string=key_string).pkey
+
+
+def timestamp_to_datetime_str(ts):
+    datetime_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+    dt = datetime.datetime.fromtimestamp(ts, tz=pytz.timezone('UTC'))
+    return dt.strftime(datetime_format)
+
+
+def dict_to_dotmap(func):
+    """装饰器, 将接受参数为dict的转换为DotMap"""
+    def _wrapper(self, data):
+        if isinstance(data, dict):
+            data = DotMap(data)
+        else:
+            raise ValueError('Dict type required')
+        return func(self, data)
+    return _wrapper

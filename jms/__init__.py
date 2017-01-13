@@ -6,6 +6,6 @@ import sys
 
 __version__ = '0.0.7'
 
-from .config import URL_MAP
-from .auth import Auth
+from .config import API_URL_MAPPING
+from .authentication import Auth
 from .api import Request, AppService, UserService

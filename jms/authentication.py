@@ -26,18 +26,34 @@ class AccessTokenAuth(object):
         return req
 
 
+class SessionAuth(object):
+    def __init__(self, session_id, csrf_token):
+        self.session_id = session_id
+        self.csrf_token = csrf_token
+
+    def sign_request(self, req):
+        cookie = [v for v in req.headers.get('Cookie', '').split(';')
+                  if v.strip()]
+        cookie.extend(['sessionid='+self.session_id,
+                       'csrftoken='+self.csrf_token])
+        req.headers['Cookie'] = ';'.join(cookie)
+        req.headers['X-CSRFTOKEN'] = self.csrf_token
+        return req
+
+
 class Auth(object):
-    def __init__(self, token=None, access_key_id=None, access_key_secret=None):
-        self.token = token
-        self.access_key_id = access_key_id
-        self.access_key_secret = access_key_secret
+    def __init__(self, token=None, access_key_id=None, access_key_secret=None,
+                 session_id=None, csrf_token=None):
 
         if token is not None:
             self.instance = AccessTokenAuth(token)
         elif access_key_id and access_key_secret:
             self.instance = AccessKeyAuth(access_key_id, access_key_secret)
+        elif session_id and csrf_token:
+            self.instance = SessionAuth(session_id, csrf_token)
         else:
-            raise OSError('Need token or access_key_id, access_key_secret')
+            raise OSError('Need token or access_key_id, access_key_secret'
+                          'or session_id, csrf_token')
 
     def sign_request(self, req):
         return self.instance.sign_request(req)

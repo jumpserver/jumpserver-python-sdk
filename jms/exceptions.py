@@ -3,3 +3,7 @@
 
 class LoadAccessKeyError(Exception):
     pass
+
+
+class RequestError(Exception):
+    pass
