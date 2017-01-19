@@ -8,7 +8,7 @@ access_key_secret = '48496c51-08fd-4eca-8c47-68b18aad72e9'
 app_service = AppService(app_name='coco', endpoint='http://localhost:8080')
 app_service.auth(access_key_id=access_key_id, access_key_secret=access_key_secret)
 
-print(app_service.check_auth())
+print(app_service.is_authenticated())
 print(app_service.terminal_heatbeat())
 
 system_user = {'id': 10, 'username': 'guang'}

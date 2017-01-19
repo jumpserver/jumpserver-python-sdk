@@ -22,13 +22,22 @@ import requests
 from requests.structures import CaseInsensitiveDict
 from dotmap import DotMap
 
-from .authentication import Auth
+from .authentication import Auth, ServiceAccessKey
 from .utils import sort_assets, PKey, dict_to_dotmap, timestamp_to_datetime_str
-from .exceptions import RequestError
+from .exceptions import RequestError, LoadAccessKeyError
 from .config import API_URL_MAPPING
 
 
 _USER_AGENT = 'jms-sdk-py'
+
+
+class FakeResponse(object):
+    def __init__(self):
+        self.status_code = 510
+
+    @staticmethod
+    def json():
+        return {}
 
 
 class Request(object):
@@ -88,6 +97,8 @@ class ApiRequest(object):
             content = {'error': 'We only support json response'}
             logging.warning(result.content)
             logging.warning(content)
+        except AttributeError:
+            content = {'error': 'Request error'}
         return result, DotMap({'content': content}).content
 
     def request(self, api_name=None, pk=None, method='get', use_auth=True,
@@ -111,12 +122,11 @@ class ApiRequest(object):
                 self._auth.sign_request(req)
         try:
             result = req.request()
+            if result.status_code > 500:
+                logging.warning('Server internal error')
         except (requests.ConnectionError, requests.ConnectTimeout):
+            result = FakeResponse()
             logging.warning('Connect endpoint: {} error'.format(self.endpoint))
-            result = {}
-        if result.status_code > 500:
-            result = {}
-            logging.warning('Server internal error')
         return self.parse_result(result)
 
     def get(self, *args, **kwargs):
@@ -164,36 +174,63 @@ class AppService(ApiRequest):
         service.send_proxy_log(data)
 
     """
+    access_key_class = ServiceAccessKey
 
-    def __init__(self, app_name, endpoint, auth=None):
+    def __init__(self, app_name, endpoint, auth=None, config=None):
         super(AppService, self).__init__(app_name, endpoint, auth=auth)
-        self.access_key_id = None
-        self.access_key_secret = None
+        self.config = config
+        self.access_key = None
 
     def auth(self, access_key_id=None, access_key_secret=None):
         """App认证, 请求api需要签名header
         :param access_key_id: 注册时或新建app用户生成access key id
         :param access_key_secret: 同上access key secret
         """
-
         if None not in (access_key_id, access_key_secret):
-            self.access_key_id = access_key_id
-            self.access_key_secret = access_key_secret
-        self._auth = Auth(access_key_id=self.access_key_id,
-                          access_key_secret=self.access_key_secret)
+            self.access_key.id = access_key_id
+            self.access_key.secret = access_key_secret
+
+        self._auth = Auth(access_key_id=self.access_key.id,
+                          access_key_secret=self.access_key.secret)
+
+    def auth_magic(self):
+        """加载配置文件定义的变量,尝试从配置文件, Keystore, 环境变量加载
+        Access Key 然后进行认证
+        """
+        self.access_key = self.access_key_class(config=self.config)
+        self.access_key.load_from_conf_all()
+        if self.access_key:
+            self._auth = Auth(access_key_id=self.access_key.id,
+                              access_key_secret=self.access_key.secret)
+        else:
+            raise LoadAccessKeyError('Load access key all failed, auth ignore')
 
     def register_terminal(self):
-        """注册Terminal, 通常第一次启动需要向Jumpserver注册"""
+        """注册Terminal, 通常第一次启动需要向Jumpserver注册
+
+        content: {
+            'terminal': {'id': 1, 'name': 'terminal name', ...},
+            'user': {
+                        'username': 'same as terminal name',
+                        'name': 'same as username',
+                    },
+            'access_key_id': 'ACCESS KEY ID',
+            'access_key_secret': 'ACCESS KEY SECRET',
+        }
+        """
         r, content = self.post('terminal-register',
                                data={'name': self.app_name},
                                use_auth=False)
         if r.status_code == 201:
-            self.access_key_id = content.access_key_id
-            self.access_key_secret = content.access_key_secret
-            is_success = True
+            logging.info('Your can save access_key: %s somewhere '
+                         'or set it in config' % content.access_key_id)
+            return True, content
+        elif r.status_code == 200:
+            logging.error('Terminal {} exist already, register failed'
+                          .format(self.app_name))
         else:
-            is_success = False
-        return is_success, content
+            logging.error('Register terminal {} failed'.format(self.app_name))
+        return False, None
 
     def terminal_heatbeat(self):
         """和Jumpserver维持心跳, 当Terminal断线后,jumpserver可以知晓
@@ -206,10 +243,25 @@ class AppService(ApiRequest):
         else:
             return False
 
-    def check_auth(self):
+    def is_authenticated(self):
         """执行auth后只是构造了请求头, 可以使用该方法连接Jumpserver测试认证"""
         result = self.terminal_heatbeat()
         return result
+
+    def validate_user_asset_permission(self, user_id, asset_id, system_user_id):
+        """验证用户是否有登录该资产的权限"""
+        params = {
+            'user_id': user_id,
+            'asset_id': asset_id,
+            'system_user_id': system_user_id,
+        }
+        r, content = self.get('validate-user-asset-permission',
+                              use_auth=True,
+                              params=params)
+        if r.status_code == 200:
+            return True
+        else:
+            return False
 
     def get_system_user_auth_info(self, system_user):
         """获取系统用户的认证信息: 密码, ssh私钥"""
@@ -267,7 +319,7 @@ class AppService(ApiRequest):
             logging.warning('Send proxy log failed: %s' % content)
             return None
         else:
-            return content
+            return content.id
 
     @dict_to_dotmap
     def finish_proxy_log(self, data):
@@ -303,6 +355,8 @@ class AppService(ApiRequest):
             'datetime': timestamp,
         }
         """
+        if isinstance(data.output, unicode):
+            data.output = data.output.encode('utf-8')
         data.output = base64.b64encode(data.output)
         assert isinstance(data.datetime, (int, float))
         data.datetime = timestamp_to_datetime_str(data.datetime)
@@ -407,7 +461,7 @@ class UserService(ApiRequest):
 
         assets = sort_assets(assets)
         for asset in assets:
-            asset.system_users_granted = \
+            asset.system_users = \
                 [system_user for system_user in asset.system_users_granted]
         return assets
 
@@ -423,7 +477,7 @@ class UserService(ApiRequest):
         asset_groups = [asset_group for asset_group in asset_groups]
         return asset_groups
 
-    def get_user_asset_group_assets(self, asset_group_id):
+    def get_assets_in_group(self, asset_group_id):
         """获取用户在该资产组下的资产, 并非该资产组下的所有资产,而是授权了的
         返回资产列表, 和获取资产格式一致
 
