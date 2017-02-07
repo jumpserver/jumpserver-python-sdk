@@ -300,10 +300,8 @@ class AppService(ApiRequest):
         """
         :param data: 格式如下
         data = {
-            "username": "username",
-            "name": "name",
-            "hostname": "hostname",
-            "ip": "IP",
+            "user": "username",
+            "asset": "name",
             "system_user": "web",
             "login_type": "ST",
             "was_failed": False,
@@ -348,38 +346,61 @@ class AppService(ApiRequest):
         """用户输入命令后发送到Jumpserver保存审计
         :param data: 格式如下
         data = {
-            'proxy_log': 22,
-            'command_no': 1,
-            'command': 'ls',
-            'output': cmd_output, ## base64.b64encode(output),
-            'datetime': timestamp,
+            "proxy_log_id": 22,
+            "user": "admin",
+            "asset": "localhost",
+            "system_user": "web",
+            "command_no": 1,
+            "command": "ls",
+            "output": cmd_output, ## base64.b64encode(output),
+            "timestamp": timestamp,
         }
         """
         if isinstance(data.output, unicode):
             data.output = data.output.encode('utf-8')
         data.output = base64.b64encode(data.output)
-        assert isinstance(data.datetime, (int, float))
-        data.datetime = timestamp_to_datetime_str(data.datetime)
+        assert isinstance(data.timestamp, (int, float))
         result, content = self.post('send-command-log', data=data)
         if result.status_code != 201:
-            logging.warning('Create command log failed: %s' % content)
+            logging.warning('Send command log failed: %s' % content)
             return False
         return True
 
-    def check_user_authentication(self, token=None, session_id=None,
-                                  csrf_token=None):
+    @dict_to_dotmap
+    def send_record_log(self, data):
+        """将输入输出发送给Jumpserver, 用来录像回放
+        :param data: 格式如下
+        data = {
+            "proxy_log_id": 22,
+            "output": "backend server output, either input or output",
+            "timestamp": timestamp,
+        }
         """
-        用户登陆webterminal或其它网站时,检测用户cookie中的sessionid和csrf_token
-        是否合法, 如果合法返回用户,否则返回空
-        :param session_id: cookie中的 sessionid
-        :param csrf_token: cookie中的 csrftoken
-        :return: user object or None
-        """
-        user_service = UserService(endpoint=self.endpoint)
-        user_service.auth(token=token, session_id=session_id,
-                          csrf_token=csrf_token)
-        user = user_service.is_authenticated()
-        return user
+        if isinstance(data.output, unicode):
+            data.output = data.output.encode('utf-8')
+        data.output = base64.b64encode(data.output)
+        assert isinstance(data.timestamp, (int, float))
+        result, content = self.post('send-record-log', data=data)
+        if result.status_code != 201:
+            logging.warning('Send record log failed: %s' % content)
+            return False
+        return True
+
+    # Todo: 或许没什么用
+    # def check_user_authentication(self, token=None, session_id=None,
+    #                               csrf_token=None):
+    #     """
+    #     用户登陆webterminal或其它网站时,检测用户cookie中的sessionid和csrf_token
+    #     是否合法, 如果合法返回用户,否则返回空
+    #     :param session_id: cookie中的 sessionid
+    #     :param csrf_token: cookie中的 csrftoken
+    #     :return: user object or None
+    #     """
+    #     user_service = UserService(endpoint=self.endpoint)
+    #     user_service.auth(token=token, session_id=session_id,
+    #                       csrf_token=csrf_token)
+    #     user = user_service.is_authenticated()
+    #     return user
 
 
 class UserService(ApiRequest):

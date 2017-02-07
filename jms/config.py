@@ -9,6 +9,7 @@ API_URL_MAPPING = {
     'send-proxy-log': '/api/audits/v1/proxy-log/receive/',
     'finish-proxy-log': '/api/audits/v1/proxy-log/%s/',
     'send-command-log': '/api/audits/v1/command-log/',
+    'send-record-log': '/api/audits/v1/record-log/',
     'user-auth': '/api/users/v1/auth/',
     'my-assets': '/api/perms/v1/user/my/assets/',
     'my-asset-groups': '/api/perms/v1/user/my/asset-groups/',
