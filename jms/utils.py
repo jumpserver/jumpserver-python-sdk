@@ -18,6 +18,11 @@ try:
 except ImportError:
     import StringIO
 
+try:
+    from Queue import Queue, Empty
+except ImportError:
+    from queue import Queue, Empty
+
 from .compat import to_string, to_bytes
 
 
@@ -145,12 +150,23 @@ def timestamp_to_datetime_str(ts):
     return dt.strftime(datetime_format)
 
 
-def dict_to_dotmap(func):
-    """装饰器, 将接受参数为dict的转换为DotMap"""
-    def _wrapper(self, data):
-        if isinstance(data, dict):
-            data = DotMap(data)
-        else:
-            raise ValueError('Dict type required')
-        return func(self, data)
-    return _wrapper
+def to_dotmap(data):
+    """将接受dict转换为DotMap"""
+    if isinstance(data, dict):
+        data = DotMap(data)
+    elif isinstance(data, list):
+        data = [DotMap(d) for d in data]
+    else:
+        raise ValueError('Dict or list type required...')
+    return data
+
+
+class MultiQueue(Queue):
+    def mget(self, size=1, block=True, timeout=5):
+        items = []
+        for i in range(size):
+            try:
+                items.append(self.get(block=block, timeout=timeout))
+            except Empty:
+                break
+        return items

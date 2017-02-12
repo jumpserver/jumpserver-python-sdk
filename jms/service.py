@@ -20,10 +20,9 @@ except ImportError:
 import paramiko
 import requests
 from requests.structures import CaseInsensitiveDict
-from dotmap import DotMap
 
 from .authentication import Auth, ServiceAccessKey
-from .utils import sort_assets, PKey, dict_to_dotmap, timestamp_to_datetime_str
+from .utils import sort_assets, PKey, to_dotmap, timestamp_to_datetime_str
 from .exceptions import RequestError, LoadAccessKeyError
 from .config import API_URL_MAPPING
 
@@ -60,11 +59,9 @@ class Request(object):
         self.headers = CaseInsensitiveDict(headers)
 
         self.headers['Content-Type'] = content_type
-        if not isinstance(data, dict):
+        if data is None:
             data = {}
-        if isinstance(data, DotMap):
-            data = data.toDict()
-        self.data = json.dumps(dict(data))
+        self.data = json.dumps(data)
 
         if 'User-Agent' not in self.headers:
             if app_name:
@@ -99,7 +96,7 @@ class ApiRequest(object):
             logging.warning(content)
         except AttributeError:
             content = {'error': 'Request error'}
-        return result, DotMap({'content': content}).content
+        return result, content
 
     def request(self, api_name=None, pk=None, method='get', use_auth=True,
                 data=None, params=None, content_type='application/json'):
@@ -223,7 +220,7 @@ class AppService(ApiRequest):
                                use_auth=False)
         if r.status_code == 201:
             logging.info('Your can save access_key: %s somewhere '
-                         'or set it in config' % content.access_key_id)
+                         'or set it in config' % content['access_key_id'])
             return True, content
         elif r.status_code == 200:
             logging.error('Terminal {} exist already, register failed'
@@ -239,9 +236,9 @@ class AppService(ApiRequest):
         """
         r, content = self.post('terminal-heatbeat', use_auth=True)
         if r.status_code == 201:
-            return True
+            return content
         else:
-            return False
+            return None
 
     def is_authenticated(self):
         """执行auth后只是构造了请求头, 可以使用该方法连接Jumpserver测试认证"""
@@ -265,15 +262,10 @@ class AppService(ApiRequest):
 
     def get_system_user_auth_info(self, system_user):
         """获取系统用户的认证信息: 密码, ssh私钥"""
-        if isinstance(system_user, dict) and \
-                not isinstance(system_user, DotMap):
-            system_user = DotMap(system_user)
-        assert isinstance(system_user, DotMap)
-
-        r, content = self.get('system-user-auth-info', pk=system_user.id)
+        r, content = self.get('system-user-auth-info', pk=system_user['id'])
         if r.status_code == 200:
-            password = content.password
-            private_key_string = content.private_key
+            password = content['password']
+            private_key_string = content['private_key']
 
             if private_key_string and private_key_string.find('PRIVATE KEY'):
                 private_key = PKey.from_string(private_key_string)
@@ -287,15 +279,14 @@ class AppService(ApiRequest):
                 private_key_log_msg = 'None'
 
             logging.debug('Get system user %s password: %s*** key: %s***' %
-                          (system_user.username, password[:4],
+                          (system_user['username'], password[:4],
                            private_key_log_msg))
             return password, private_key
         else:
             logging.warning('Get system user %s password or private key failed'
-                            % system_user.username)
+                            % system_user['username'])
             return None, None
 
-    @dict_to_dotmap
     def send_proxy_log(self, data):
         """
         :param data: 格式如下
@@ -308,18 +299,17 @@ class AppService(ApiRequest):
             "date_start": timestamp,
         }
         """
-        assert isinstance(data.date_start, (int, float))
-        data.date_start = timestamp_to_datetime_str(data.date_start)
-        data.was_failed = 1 if data.was_failed else 0
+        assert isinstance(data.get('date_start'), (int, float))
+        data['date_start'] = timestamp_to_datetime_str(data['date_start'])
+        data['was_failed'] = 1 if data.get('was_failed') else 0
 
         r, content = self.post('send-proxy-log', data=data, use_auth=True)
         if r.status_code != 201:
             logging.warning('Send proxy log failed: %s' % content)
             return None
         else:
-            return content.id
+            return content['id']
 
-    @dict_to_dotmap
     def finish_proxy_log(self, data):
         """ 退出登录资产后, 需要汇报结束 时间等
 
@@ -329,11 +319,11 @@ class AppService(ApiRequest):
             "date_finished": timestamp,
         }
         """
-        assert isinstance(data.date_finished, (int, float))
-        data.date_finished = timestamp_to_datetime_str(data.date_finished)
-        data.was_failed = 1 if data.was_failed else 0
-        data.is_finished = 1
-        proxy_log_id = data.proxy_log_id or 0
+        assert isinstance(data.get('date_finished'), (int, float))
+        data['date_finished'] = timestamp_to_datetime_str(data['date_finished'])
+        data['was_failed'] = 1 if data.get('was_failed') else 0
+        data['is_finished'] = 1
+        proxy_log_id = data.get('proxy_log_id') or 0
         r, content = self.patch('finish-proxy-log', pk=proxy_log_id, data=data)
 
         if r.status_code != 200:
@@ -341,11 +331,10 @@ class AppService(ApiRequest):
             return False
         return True
 
-    @dict_to_dotmap
     def send_command_log(self, data):
         """用户输入命令后发送到Jumpserver保存审计
         :param data: 格式如下
-        data = {
+        data = [{
             "proxy_log_id": 22,
             "user": "admin",
             "asset": "localhost",
@@ -354,32 +343,37 @@ class AppService(ApiRequest):
             "command": "ls",
             "output": cmd_output, ## base64.b64encode(output),
             "timestamp": timestamp,
-        }
+        },..]
         """
-        if isinstance(data.output, unicode):
-            data.output = data.output.encode('utf-8')
-        data.output = base64.b64encode(data.output)
-        assert isinstance(data.timestamp, (int, float))
+        assert isinstance(data, (dict, list))
+        if isinstance(data, dict):
+            data = [data]
+        for d in data:
+            if d.get('output') and isinstance(d['output'], unicode):
+                d['output'] = d['output'].encode('utf-8')
+            d['output'] = base64.b64encode(d['output'])
         result, content = self.post('send-command-log', data=data)
         if result.status_code != 201:
             logging.warning('Send command log failed: %s' % content)
             return False
         return True
 
-    @dict_to_dotmap
     def send_record_log(self, data):
         """将输入输出发送给Jumpserver, 用来录像回放
         :param data: 格式如下
-        data = {
+        data = [{
             "proxy_log_id": 22,
             "output": "backend server output, either input or output",
             "timestamp": timestamp,
-        }
+        }, ...]
         """
-        if isinstance(data.output, unicode):
-            data.output = data.output.encode('utf-8')
-        data.output = base64.b64encode(data.output)
-        assert isinstance(data.timestamp, (int, float))
+        assert isinstance(data, (dict, list))
+        if isinstance(data, dict):
+            data = [data]
+        for d in data:
+            if d.get('output') and isinstance(d['output'], unicode):
+                d['output'] = d['output'].encode('utf-8')
+            d['output'] = base64.b64encode(d['output'])
         result, content = self.post('send-record-log', data=data)
         if result.status_code != 201:
             logging.warning('Send record log failed: %s' % content)
@@ -438,7 +432,6 @@ class UserService(ApiRequest):
         else:
             raise ValueError('Token or session_id, csrf_token required')
 
-    @dict_to_dotmap
     def login(self, data):
         """用户登录Terminal时需要向Jumpserver进行认证, 登陆成功后返回用户和token
         data = {
@@ -452,10 +445,10 @@ class UserService(ApiRequest):
         """
         r, content = self.post('user-auth', data=data, use_auth=False)
         if r.status_code == 200:
-            self.token = content.token
-            self.user = content.user
+            self.token = content['token']
+            self.user = content['user']
             self.auth(self.token)
-            return self.user, self.token
+            return to_dotmap(self.user), self.token
         else:
             return None, None
 
@@ -482,9 +475,9 @@ class UserService(ApiRequest):
 
         assets = sort_assets(assets)
         for asset in assets:
-            asset.system_users = \
-                [system_user for system_user in asset.system_users_granted]
-        return assets
+            asset['system_users'] = \
+                [system_user for system_user in asset.get('system_users_granted')]
+        return to_dotmap(assets)
 
     def get_my_asset_groups(self):
         """获取用户授权的资产组列表
@@ -496,7 +489,7 @@ class UserService(ApiRequest):
         else:
             asset_groups = []
         asset_groups = [asset_group for asset_group in asset_groups]
-        return asset_groups
+        return to_dotmap(asset_groups)
 
     def get_assets_in_group(self, asset_group_id):
         """获取用户在该资产组下的资产, 并非该资产组下的所有资产,而是授权了的
@@ -511,5 +504,5 @@ class UserService(ApiRequest):
         else:
             assets = []
         assets = sort_assets(assets)
-        return [asset for asset in assets]
+        return to_dotmap([asset for asset in assets])
 
