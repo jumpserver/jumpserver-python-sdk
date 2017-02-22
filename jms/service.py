@@ -4,6 +4,7 @@
 
 from __future__ import unicode_literals, absolute_import
 
+import os
 import json
 import base64
 import logging
@@ -20,6 +21,7 @@ except ImportError:
 import paramiko
 import requests
 from requests.structures import CaseInsensitiveDict
+from cachetools import cached, TTLCache
 
 from .authentication import Auth, ServiceAccessKey
 from .utils import sort_assets, PKey, to_dotmap, timestamp_to_datetime_str
@@ -28,6 +30,7 @@ from .config import API_URL_MAPPING
 
 
 _USER_AGENT = 'jms-sdk-py'
+CACHED_TTL = os.environ.get('CACHED_TTL', 30)
 
 
 class FakeResponse(object):
@@ -221,7 +224,7 @@ class AppService(ApiRequest):
         if r.status_code == 201:
             logging.info('Your can save access_key: %s somewhere '
                          'or set it in config' % content['access_key_id'])
-            return True, content
+            return True, to_dotmap(content)
         elif r.status_code == 200:
             logging.error('Terminal {} exist already, register failed'
                           .format(self.app_name))
@@ -452,6 +455,7 @@ class UserService(ApiRequest):
         else:
             return None, None
 
+    @cached(TTLCache(maxsize=100, ttl=60))
     def is_authenticated(self):
         """根据签名判断用户是否认证"""
         r, content = self.post('my-profile', use_auth=True)
@@ -461,6 +465,7 @@ class UserService(ApiRequest):
         else:
             return None
 
+    @cached(TTLCache(maxsize=100, ttl=60))
     def get_my_assets(self):
         """获取用户被授权的资产列表
         [{'hostname': 'x', 'ip': 'x', ...,
@@ -479,6 +484,7 @@ class UserService(ApiRequest):
                 [system_user for system_user in asset.get('system_users_granted')]
         return to_dotmap(assets)
 
+    @cached(TTLCache(maxsize=100, ttl=60))
     def get_my_asset_groups(self):
         """获取用户授权的资产组列表
         [{'name': 'x', 'comment': 'x', 'assets_amount': 2}, ..]
@@ -491,6 +497,7 @@ class UserService(ApiRequest):
         asset_groups = [asset_group for asset_group in asset_groups]
         return to_dotmap(asset_groups)
 
+    @cached(TTLCache(maxsize=100, ttl=60))
     def get_assets_in_group(self, asset_group_id):
         """获取用户在该资产组下的资产, 并非该资产组下的所有资产,而是授权了的
         返回资产列表, 和获取资产格式一致
