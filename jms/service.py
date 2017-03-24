@@ -267,8 +267,8 @@ class AppService(ApiRequest):
         """获取系统用户的认证信息: 密码, ssh私钥"""
         r, content = self.get('system-user-auth-info', pk=system_user['id'])
         if r.status_code == 200:
-            password = content['password']
-            private_key_string = content['private_key']
+            password = content['password'] or ''
+            private_key_string = content['private_key'] or ''
 
             if private_key_string and private_key_string.find('PRIVATE KEY'):
                 private_key = PKey.from_string(private_key_string)
