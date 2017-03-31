@@ -498,6 +498,18 @@ class UserService(ApiRequest):
         return to_dotmap(asset_groups)
 
     @cached(TTLCache(maxsize=100, ttl=60))
+    def get_my_asset_groups_assets(self):
+        """获取用户授权的资产组列表及下面的资产
+        [{'name': 'x', 'comment': 'x', 'assets': []}, ..]
+        """
+        r, content = self.get('my-asset-groups-assets', use_auth=True)
+        if r.status_code == 200:
+            asset_groups_assets = content
+        else:
+            asset_groups_assets = []
+        return to_dotmap(asset_groups_assets)
+
+    @cached(TTLCache(maxsize=100, ttl=60))
     def get_assets_in_group(self, asset_group_id):
         """获取用户在该资产组下的资产, 并非该资产组下的所有资产,而是授权了的
         返回资产列表, 和获取资产格式一致

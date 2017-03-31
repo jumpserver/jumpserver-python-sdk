@@ -13,6 +13,7 @@ API_URL_MAPPING = {
     'user-auth': '/api/users/v1/auth/',
     'my-assets': '/api/perms/v1/user/my/assets/',
     'my-asset-groups': '/api/perms/v1/user/my/asset-groups/',
+    'my-asset-groups-assets': '/api/perms/v1/user/my/asset-groups-assets/',
     'assets-of-group': '/api/perms/v1/user/my/asset-group/%s/assets/',
     'my-profile': '/api/users/v1/profile/',
     'system-user-auth-info': '/api/assets/v1/system-user/%s/auth-info/',
