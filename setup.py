@@ -32,6 +32,7 @@ setup(
         'dotmap==1.2.14',
         'paramiko==2.0.2',
         'requests==2.11.1',
+        'cachetools >= 2.0.0',
     ],
     include_package_data=True,
     url='http://jumpserver.org',
