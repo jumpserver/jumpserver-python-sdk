@@ -4,3 +4,4 @@ dist
 jumpserver_python_sdk.egg-info
 *.pyc
 *.pyo
+jumpserver-python-sdk.iml

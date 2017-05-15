@@ -10,10 +10,6 @@ import base64
 import logging
 
 try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
-try:
     from collections import OrderedDotMap
 except ImportError:
     OrderedDotMap = dict
@@ -352,9 +348,9 @@ class AppService(ApiRequest):
         if isinstance(data, dict):
             data = [data]
         for d in data:
-            if d.get('output') and isinstance(d['output'], unicode):
+            if d.get('output') and isinstance(d['output'], str):
                 d['output'] = d['output'].encode('utf-8')
-            d['output'] = base64.b64encode(d['output'])
+            d['output'] = base64.b64encode(d['output']).decode("utf-8")
         result, content = self.post('send-command-log', data=data)
         if result.status_code != 201:
             logging.warning('Send command log failed: %s' % content)
@@ -374,7 +370,7 @@ class AppService(ApiRequest):
         if isinstance(data, dict):
             data = [data]
         for d in data:
-            if d.get('output') and isinstance(d['output'], unicode):
+            if d.get('output') and isinstance(d['output'], str):
                 d['output'] = d['output'].encode('utf-8')
             d['output'] = base64.b64encode(d['output'])
         result, content = self.post('send-record-log', data=data)

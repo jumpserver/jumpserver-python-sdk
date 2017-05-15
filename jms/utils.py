@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
+from __future__ import unicode_literals
 
 import hashlib
 import re
@@ -9,6 +10,7 @@ import base64
 import calendar
 import time
 import datetime
+from io import StringIO
 
 import pyte
 import pytz
@@ -16,10 +18,7 @@ from email.utils import formatdate
 
 import paramiko
 from dotmap import DotMap
-try:
-    import cStringIO as StringIO
-except ImportError:
-    import StringIO
+
 
 try:
     from Queue import Queue, Empty
@@ -49,7 +48,7 @@ _ISO8601_FORMAT = "%Y-%m-%dT%H:%M:%S.000Z"
 
 def to_unixtime(time_string, format_string):
     with _STRPTIME_LOCK:
-        return int(calendar.timegm(time.strptime(time_string, format_string)))
+        return int(calendar.timegm(time.strptime(str(time_string), format_string)))
 
 
 def http_date(timeval=None):
@@ -72,15 +71,9 @@ def iso8601_to_unixtime(time_string):
     return to_unixtime(time_string, _ISO8601_FORMAT)
 
 
-def http_to_unixtime(time_string):
-    """把HTTP Date格式的字符串转换为UNIX时间（自1970年1月1日UTC零点的秒数）。
-
-    HTTP Date形如 `Sat, 05 Dec 2015 11:10:29 GMT` 。
-    """
-    return to_unixtime(time_string, "%a, %d %b %Y %H:%M:%S GMT")
-
-
 def make_signature(access_key_secret, date=None):
+    if isinstance(date, bytes):
+        date = date.decode("utf-8")
     if isinstance(date, int):
         date_gmt = http_date(date)
     elif date is None:
@@ -120,7 +113,8 @@ def split_string_int(s):
 def sort_assets(assets, order_by='hostname'):
     if order_by == 'hostname':
         key = lambda asset: split_string_int(asset['hostname'])
-        assets = sorted(assets, key=key)
+        # print(assets)
+        # assets = sorted(assets, key=key)
     elif order_by == 'ip':
             assets = sorted(assets, key=lambda asset: [int(d) for d in asset['ip'].split('.') if d.isdigit()])
     else:
@@ -133,11 +127,11 @@ class PKey(object):
     @classmethod
     def from_string(cls, key_string):
         try:
-            pkey = paramiko.RSAKey(file_obj=StringIO.StringIO(key_string))
+            pkey = paramiko.RSAKey(file_obj=StringIO(key_string))
             return pkey
         except paramiko.SSHException:
             try:
-                pkey = paramiko.DSSKey(file_obj=StringIO.StringIO(key_string))
+                pkey = paramiko.DSSKey(file_obj=StringIO(key_string))
                 return pkey
             except paramiko.SSHException:
                 return None

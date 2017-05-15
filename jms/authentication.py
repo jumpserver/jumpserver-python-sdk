@@ -5,6 +5,7 @@
 import os
 import six
 import logging
+from io import IOBase
 
 from . import utils
 from .exceptions import LoadAccessKeyError
@@ -86,7 +87,7 @@ class AccessKey(object):
         value = ''
         if isinstance(f, six.string_types) and os.path.isfile(f):
             f = open(f)
-        if isinstance(f, file):
+        if hasattr(f, 'read'):
             for line in f:
                 if line and not line.strip().startswith('#'):
                     value = line.strip()
@@ -108,6 +109,7 @@ class AccessKey(object):
 
     def __nonzero__(self):
         return bool(self.id and self.secret)
+    __bool__ = __nonzero__
 
     def __str__(self):
         return '{0}:{1}'.format(self.id, self.secret)

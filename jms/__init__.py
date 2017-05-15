@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-import os
-import sys
 
-__version__ = '0.0.10'
+__version__ = '0.0.12'
 
 from .config import API_URL_MAPPING
 from .authentication import Auth
