@@ -348,7 +348,7 @@ class AppService(ApiRequest):
         if isinstance(data, dict):
             data = [data]
         for d in data:
-            if d.get('output') and isinstance(d['output'], str):
+            if d.get('output') and not isinstance(d['output'], bytes):
                 d['output'] = d['output'].encode('utf-8')
             d['output'] = base64.b64encode(d['output']).decode("utf-8")
         result, content = self.post('send-command-log', data=data)
@@ -454,7 +454,7 @@ class UserService(ApiRequest):
     @cached(TTLCache(maxsize=100, ttl=60))
     def is_authenticated(self):
         """根据签名判断用户是否认证"""
-        r, content = self.post('my-profile', use_auth=True)
+        r, content = self.get('my-profile', use_auth=True)
         if r.status_code == 200:
             self.user = content
             return self.user
