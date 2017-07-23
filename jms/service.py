@@ -518,6 +518,11 @@ class UserService(ApiRequest):
             assets = content
         else:
             assets = []
+
+        for asset in assets:
+            asset['system_users'] = \
+                [system_user for system_user in asset.get('system_users_granted')]
+
         assets = sort_assets(assets)
         return to_dotmap([asset for asset in assets])
 
