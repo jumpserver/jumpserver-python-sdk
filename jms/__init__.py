@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 
-__version__ = '0.0.14'
+__version__ = '0.0.15'
 
 from .config import API_URL_MAPPING
 from .authentication import Auth
