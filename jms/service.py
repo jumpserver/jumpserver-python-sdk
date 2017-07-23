@@ -164,7 +164,7 @@ class AppService(ApiRequest):
             "ip": "127.0.0.1",
             "system_user": "web",
             "login_type": "ST",
-            "was_failed": False,
+            "is_failed": 0,
             "date_start": 1484206685,
         }
         service.send_proxy_log(data)
@@ -294,13 +294,13 @@ class AppService(ApiRequest):
             "asset": "name",
             "system_user": "web",
             "login_type": "ST",
-            "was_failed": False,
+            "was_failed": 0,
             "date_start": timestamp,
         }
         """
         assert isinstance(data.get('date_start'), (int, float))
         data['date_start'] = timestamp_to_datetime_str(data['date_start'])
-        data['was_failed'] = 1 if data.get('was_failed') else 0
+        data['is_failed'] = 1 if data.get('is_failed') else 0
 
         r, content = self.post('send-proxy-log', data=data, use_auth=True)
         if r.status_code != 201:
@@ -320,7 +320,7 @@ class AppService(ApiRequest):
         """
         assert isinstance(data.get('date_finished'), (int, float))
         data['date_finished'] = timestamp_to_datetime_str(data['date_finished'])
-        data['was_failed'] = 1 if data.get('was_failed') else 0
+        data['is_failed'] = 1 if data.get('is_failed') else 0
         data['is_finished'] = 1
         proxy_log_id = data.get('proxy_log_id') or 0
         r, content = self.patch('finish-proxy-log', pk=proxy_log_id, data=data)
