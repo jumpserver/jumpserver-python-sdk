@@ -348,7 +348,7 @@ class AppService(ApiRequest):
         if isinstance(data, dict):
             data = [data]
         for d in data:
-            if d.get('output') and not isinstance(d['output'], bytes):
+            if not isinstance(d['output'], bytes):
                 d['output'] = d['output'].encode('utf-8')
             d['output'] = base64.b64encode(d['output']).decode("utf-8")
         result, content = self.post('send-command-log', data=data)
