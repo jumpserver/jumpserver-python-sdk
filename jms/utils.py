@@ -143,7 +143,7 @@ def from_string(cls, key_string):
 
 def timestamp_to_datetime_str(ts):
     datetime_format = '%Y-%m-%dT%H:%M:%S.%fZ'
-    dt = datetime.datetime.fromtimestamp(ts, tz=pytz.timezone('UTC'))
+    dt = datetime.datetime.fromtimestamp(ts, tz=pytz.timezone('Asia/Shanghai'))
     return dt.strftime(datetime_format)
 
 
