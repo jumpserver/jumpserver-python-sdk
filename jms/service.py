@@ -9,6 +9,8 @@ import json
 import base64
 import logging
 
+logging.getLogger("requests").setLevel(logging.WARNING)
+
 try:
     from collections import OrderedDotMap
 except ImportError:
@@ -347,10 +349,13 @@ class AppService(ApiRequest):
         assert isinstance(data, (dict, list))
         if isinstance(data, dict):
             data = [data]
+
         for d in data:
-            if d.get('output') and not isinstance(d['output'], bytes):
-                d['output'] = d['output'].encode('utf-8')
-            d['output'] = base64.b64encode(d['output']).decode("utf-8")
+            if not d.get('output'):
+                continue
+            output = d['output'].encode('utf-8', 'ignore')
+            d['output'] = base64.b64encode(output).decode("utf-8")
+
         result, content = self.post('send-command-log', data=data)
         if result.status_code != 201:
             logging.warning('Send command log failed: %s' % content)
