@@ -4,14 +4,20 @@
 import unittest
 import os
 import tempfile
+from copy import deepcopy
 
-from jms.auth import AccessKey, AccessKeyAuth, TokenAuth, SessionAuth
+from jms.auth import AccessKey, AccessKeyAuth, TokenAuth, SessionAuth, \
+    AppAccessKey
 from jms.exceptions import LoadAccessKeyError
 
 
 class MockRequest:
     def __init__(self):
         self.headers = {}
+
+class MockApp:
+    def __init__(self, config):
+        self.config = config
 
 
 class TestAccessKeyAuth(unittest.TestCase):
@@ -87,6 +93,7 @@ class TestAccessKey(unittest.TestCase):
         env_var = "XX_ACCESS_KEY"
         os.environ[env_var] = self.access_key_val
         self.assertEqual(AccessKey.load_from_env(env_var), self.access_key)
+        del os.environ[env_var]
 
     def test_load_from_f(self):
         with tempfile.NamedTemporaryFile('w+t') as f:
@@ -102,6 +109,51 @@ class TestAccessKey(unittest.TestCase):
             val = f.read().strip()
             self.assertEqual(val, self.access_key_val)
         os.unlink(tmpf)
+
+
+class TestAppAccessKey(unittest.TestCase):
+    def setUp(self):
+        self.access_key_val = "123:123"
+        self.id = "123"
+        self.secret = "123"
+        self.access_key = AccessKey("123", "123")
+        self.key_env_var = "XXX_ACCESS_KEY"
+        self.key_file = tempfile.mktemp()
+        config = {
+            'ACCESS_KEY_ENV': self.key_env_var,
+            'ACCESS_KEY': self.access_key_val,
+            'ACCESS_KEY_FILE': self.key_file,
+        }
+        self.mock_app = MockApp(config)
+        self.app_access_key = AppAccessKey(self.mock_app)
+
+    def test_load_from_conf_env(self):
+        os.environ[self.key_env_var] = self.access_key_val
+        app_access_key = deepcopy(self.app_access_key)
+        app_access_key.load_from_conf_env()
+        self.assertEqual(app_access_key, self.access_key)
+
+    def test_load_from_conf_val(self):
+        app_access_key = deepcopy(self.app_access_key)
+        app_access_key.load_from_conf_val()
+        self.assertEqual(app_access_key, self.access_key)
+
+    def test_load_from_conf_file(self):
+        with open(self.key_file, 'wt') as f:
+            f.write(self.access_key_val)
+        app_access_key = deepcopy(self.app_access_key)
+        app_access_key.load_from_conf_file()
+        self.assertEqual(app_access_key, self.access_key)
+
+    def test_load(self):
+        with open(self.key_file, 'wt') as f:
+            f.write(self.access_key_val)
+        app_access_key = deepcopy(self.app_access_key)
+        app_access_key.load()
+        self.assertEqual(app_access_key, self.access_key)
+
+    def tearDown(self):
+        pass
 
 
 if __name__ == '__main__':

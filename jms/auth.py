@@ -127,6 +127,14 @@ class AppAccessKey:
         self.access_key = None
 
     @property
+    def id(self):
+        return self.access_key.id if self.access_key else ''
+
+    @property
+    def secret(self):
+        return self.access_key.secret if self.access_key else ''
+
+    @property
     def _key_env(self):
         return self.app.config['ACCESS_KEY_ENV']
 
@@ -139,13 +147,13 @@ class AppAccessKey:
         return self.app.config['ACCESS_KEY_FILE']
 
     def load_from_conf_env(self, sep=':', silent=False):
-        self.access_key = self.load_from_env(self._key_env, sep=sep, silent=silent)
+        self.access_key = AccessKey.load_from_env(self._key_env, sep=sep, silent=silent)
 
     def load_from_conf_val(self, sep=':', silent=False):
-        self.access_key = self.load_from_val(self._key_val, sep=sep, silent=silent)
+        self.access_key = AccessKey.load_from_val(self._key_val, sep=sep, silent=silent)
 
     def load_from_conf_file(self, sep=':', silent=False):
-        self.access_key = self.load_from_f(self._key_file, sep=sep, silent=silent)
+        self.access_key = AccessKey.load_from_f(self._key_file, sep=sep, silent=silent)
 
     def load(self, **kwargs):
         """Should return access_key_id, access_key_secret"""
@@ -161,5 +169,5 @@ class AppAccessKey:
     def save_to_file(self):
         return self.access_key.save_to_f(self._key_file)
 
-    def __getattr__(self, item):
-        return getattr(self.access_key, item)
+    # def __getattr__(self, item):
+    #     return getattr(self.access_key, item)
