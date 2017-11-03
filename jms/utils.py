@@ -71,17 +71,15 @@ def iso8601_to_unixtime(time_string):
     return to_unixtime(time_string, _ISO8601_FORMAT)
 
 
-def make_signature(access_key_secret, date=None):
+def make_signature(access_key_secret, date):
     if isinstance(date, bytes):
         date = date.decode("utf-8")
     if isinstance(date, int):
         date_gmt = http_date(date)
-    elif date is None:
-        date_gmt = http_date(int(time.time()))
     else:
         date_gmt = date
 
-    data = str(access_key_secret) + "\n" + date_gmt
+    data = access_key_secret + "\n" + date_gmt
     return content_md5(data)
 
 

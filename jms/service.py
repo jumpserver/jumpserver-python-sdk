@@ -23,7 +23,7 @@ from cachetools import cached, TTLCache
 
 from .authentication import Auth, ServiceAccessKey
 from .utils import sort_assets, PKey, to_dotmap, timestamp_to_datetime_str
-from .exceptions import RequestError, LoadAccessKeyError
+from .exceptions import AuthenticationError, LoadAccessKeyError
 from .config import API_URL_MAPPING
 
 
@@ -115,7 +115,7 @@ class ApiRequest(object):
                                  app_name=self.app_name)
         if use_auth:
             if not self._auth:
-                raise RequestError('Authentication required')
+                raise AuthenticationError('Authentication not valid or expired')
             else:
                 self._auth.sign_request(req)
         try:
