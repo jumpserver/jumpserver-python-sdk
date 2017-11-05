@@ -70,19 +70,14 @@ class AccessKey(object):
         else:
             return id, secret
 
-    @classmethod
-    def load_from_val(cls, val, **kwargs):
-        id, secret = cls.clean(val, **kwargs)
-        return cls(id=id, secret=secret)
+    def load_from_val(self, val, **kwargs):
+        self.id, self.secret = self.clean(val, **kwargs)
 
-    @classmethod
-    def load_from_env(cls, env, **kwargs):
+    def load_from_env(self, env, **kwargs):
         value = os.environ.get(env)
-        id, secret = cls.clean(value, **kwargs)
-        return cls(id=id, secret=secret)
+        self.id, self.secret = self.clean(value, **kwargs)
 
-    @classmethod
-    def load_from_f(cls, f, **kwargs):
+    def load_from_f(self, f, **kwargs):
         value = ''
         if isinstance(f, str) and os.path.isfile(f):
             f = open(f)
@@ -92,8 +87,7 @@ class AccessKey(object):
                     value = line.strip()
                     break
             f.close()
-        id, secret = cls.clean(value, **kwargs)
-        return cls(id=id, secret=secret)
+        self.id, self.secret = self.clean(value, **kwargs)
 
     def save_to_f(self, f, silent=False):
         if isinstance(f, str):
@@ -119,20 +113,12 @@ class AccessKey(object):
         return '{0}:{1}'.format(self.id, self.secret)
 
 
-class AppAccessKey:
+class AppAccessKey(AccessKey):
     """使用Access key来认证"""
 
-    def __init__(self, app):
+    def __init__(self, app, id=None, secret=None):
+        super().__init__(id=id, secret=secret)
         self.app = app
-        self.access_key = None
-
-    @property
-    def id(self):
-        return self.access_key.id if self.access_key else ''
-
-    @property
-    def secret(self):
-        return self.access_key.secret if self.access_key else ''
 
     @property
     def _key_env(self):
@@ -147,13 +133,13 @@ class AppAccessKey:
         return self.app.config['ACCESS_KEY_FILE']
 
     def load_from_conf_env(self, sep=':', silent=False):
-        self.access_key = AccessKey.load_from_env(self._key_env, sep=sep, silent=silent)
+        super().load_from_env(self._key_env, sep=sep, silent=silent)
 
     def load_from_conf_val(self, sep=':', silent=False):
-        self.access_key = AccessKey.load_from_val(self._key_val, sep=sep, silent=silent)
+        super().load_from_val(self._key_val, sep=sep, silent=silent)
 
     def load_from_conf_file(self, sep=':', silent=False):
-        self.access_key = AccessKey.load_from_f(self._key_file, sep=sep, silent=silent)
+        super().load_from_f(self._key_file, sep=sep, silent=silent)
 
     def load(self, **kwargs):
         """Should return access_key_id, access_key_secret"""
@@ -167,7 +153,7 @@ class AppAccessKey:
         return None
 
     def save_to_file(self):
-        return self.access_key.save_to_f(self._key_file)
+        return super().save_to_f(self._key_file)
 
     # def __getattr__(self, item):
     #     return getattr(self.access_key, item)

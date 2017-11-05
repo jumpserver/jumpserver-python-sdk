@@ -15,6 +15,7 @@ class MockRequest:
     def __init__(self):
         self.headers = {}
 
+
 class MockApp:
     def __init__(self, config):
         self.config = config
@@ -85,21 +86,26 @@ class TestAccessKey(unittest.TestCase):
         self.assertEqual(AccessKey.clean(self.access_key_val), (self.id, self.secret))
 
     def test_load_from_val(self):
+        access_key = AccessKey()
         with self.assertRaises(LoadAccessKeyError):
-            AccessKey.load_from_val("2123")
-        self.assertEqual(AccessKey.load_from_val(self.access_key_val), self.access_key)
+            access_key.load_from_val("2123")
+        access_key.load_from_val(self.access_key_val)
+        self.assertEqual(access_key, self.access_key)
 
     def test_load_from_env(self):
         env_var = "XX_ACCESS_KEY"
         os.environ[env_var] = self.access_key_val
-        self.assertEqual(AccessKey.load_from_env(env_var), self.access_key)
-        del os.environ[env_var]
+        access_key = AccessKey()
+        access_key.load_from_env(env_var)
+        self.assertEqual(access_key, self.access_key)
 
     def test_load_from_f(self):
         with tempfile.NamedTemporaryFile('w+t') as f:
             f.write(self.access_key_val)
             f.flush()
-            self.assertEqual(AccessKey.load_from_f(f.name), self.access_key)
+            access_key = AccessKey()
+            access_key.load_from_f(f.name)
+            self.assertEqual(access_key, self.access_key)
 
     def test_save_to_f(self):
         tmpf = tempfile.mktemp()
