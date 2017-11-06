@@ -2,10 +2,9 @@
 #
 
 import os
-import logging
 
 from . import utils
-from .exceptions import LoadAccessKeyError
+from .exception import LoadAccessKeyError
 
 
 class AccessKeyAuth:
@@ -154,6 +153,3 @@ class AppAccessKey(AccessKey):
 
     def save_to_file(self):
         return super().save_to_f(self._key_file)
-
-    # def __getattr__(self, item):
-    #     return getattr(self.access_key, item)

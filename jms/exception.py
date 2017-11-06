@@ -15,3 +15,7 @@ class RequestError(Exception):
 
 class ResponseError(Exception):
     pass
+
+
+class RegisterError(Exception):
+    pass

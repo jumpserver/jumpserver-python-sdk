@@ -25,11 +25,9 @@ try:
 except ImportError:
     from queue import Queue, Empty
 
-from .compat import to_string, to_bytes
-
 
 def b64encode_as_string(data):
-    return to_string(base64.b64encode(data))
+    return base64.b64encode(data).decode('utf-8')
 
 
 def content_md5(data):
@@ -37,8 +35,8 @@ def content_md5(data):
 
     返回值可以直接作为HTTP Content-Type头部的值
     """
-    m = hashlib.md5(to_bytes(data))
-    return to_string(base64.b64encode(m.digest()))
+    m = hashlib.md5(data.encode('utf-8'))
+    return base64.b64encode(m.digest()).decode('utf-8')
 
 _STRPTIME_LOCK = threading.Lock()
 

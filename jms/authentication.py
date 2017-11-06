@@ -8,7 +8,7 @@ import logging
 from io import IOBase
 
 from . import utils
-from .exceptions import LoadAccessKeyError
+from .exception import LoadAccessKeyError
 
 
 class AccessKeyAuth(object):

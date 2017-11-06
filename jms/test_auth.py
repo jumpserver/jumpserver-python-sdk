@@ -8,7 +8,7 @@ from copy import deepcopy
 
 from jms.auth import AccessKey, AccessKeyAuth, TokenAuth, SessionAuth, \
     AppAccessKey
-from jms.exceptions import LoadAccessKeyError
+from jms.exception import LoadAccessKeyError
 
 
 class MockRequest:

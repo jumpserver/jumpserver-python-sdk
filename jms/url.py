@@ -5,7 +5,7 @@
 
 API_URL_MAPPING = {
     'terminal-register': '/api/applications/v1/terminal/register/',
-    'terminal-heatbeat': '/api/applications/v1/terminal/heatbeat/',
+    'terminal-heartbeat': '/api/applications/v1/terminal/heartbeat/',
     'send-proxy-log': '/api/audits/v1/proxy-log/receive/',
     'finish-proxy-log': '/api/audits/v1/proxy-log/%s/',
     'send-command-log': '/api/audits/v1/command-log/',
