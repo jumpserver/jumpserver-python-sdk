@@ -351,11 +351,12 @@ class AppService(ApiRequest):
             data = [data]
 
         for d in data:
-            if not d.get('output'):
-                continue
-            output = d['output'].encode('utf-8', 'ignore')
-            d['output'] = base64.b64encode(output).decode("utf-8")
-
+            if d.get('output') and not isinstance(d['output'], bytes):
+                d['output'] = d['output'].encode('utf-8')
+            if d.get('output'):
+                d['output'] = base64.b64encode(d['output']).decode("utf-8")
+            else:
+                d['output'] = ''
         result, content = self.post('send-command-log', data=data)
         if result.status_code != 201:
             logging.warning('Send command log failed: %s' % content)
