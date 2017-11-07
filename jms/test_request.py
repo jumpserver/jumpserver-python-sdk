@@ -4,7 +4,6 @@
 import json
 import unittest
 from unittest import mock
-from unittest.mock import patch
 
 from jms.request import HttpRequest
 
@@ -25,10 +24,13 @@ class TestHttpRequest(unittest.TestCase):
         self.assertEqual(self.request.method, self.method)
         self.assertEqual(self.data, self.data)
 
-    # Todo: mock test
-    @mock.patch('jms.request.requests.post')
-    def test_do(self, mock_post):
-        pass
+    @mock.patch.object(HttpRequest, "methods")
+    def test_do(self, mock_methods):
+        mock_post = mock.MagicMock()
+        mock_methods.get.return_value = mock_post
+        self.request.do()
+        self.assertTrue(mock_post.called)
+        mock_post.assert_called_once_with(url=self.url, headers=self.request.headers, data=self.data_json, params=self.param)
 
 
 if __name__ == '__main__':
