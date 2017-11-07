@@ -3,6 +3,3 @@
 #
 
 __version__ = '0.0.16'
-
-from .url import API_URL_MAPPING
-from .authentication import Auth

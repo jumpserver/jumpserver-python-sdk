@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 #
-
-import base64
+import datetime
 import logging
 import sys
-
 import time
 
-from .auth import AppAccessKey, AccessKeyAuth
+from .exception import RegisterError
+from .auth import AppAccessKey, AccessKeyAuth, TokenAuth
 from .request import Http
 from .applications import ApplicationsMixin
 from .perms import PermsMixin
@@ -62,9 +61,39 @@ class AppService(Service):
             sys.exit()
 
     def register_and_save(self):
-        self.register()
+        try:
+            self.access_key.id, self.access_key.secret = self.terminal_register(self.app.name)
+        except RegisterError as e:
+            logging.error("Failed register terminal %s" % e)
+            sys.exit()
         self.save_access_key()
 
     def save_access_key(self):
         self.access_key.save_to_file()
+
+
+class UserService(Service):
+
+    def __init__(self, endpoint):
+        super().__init__(endpoint)
+        self.username = ""
+        self.password = ""
+        self.pubkey = ""
+
+    def refresh_token(self):
+        if self.username:
+            self.login(self.username, self.password, self.pubkey)
+        else:
+            logging.info("You need login first")
+
+    def login(self, username, password=None, pubkey=None):
+        user, token = self.authenticate(username, password=password, pubkey=pubkey)
+        if user.is_active and user.date_expired > datetime.datetime.now():
+            self.auth = TokenAuth(token=token)
+        self.username = username
+        self.password = password
+        self.pubkey = pubkey
+        return user
+
+
 

@@ -19,7 +19,7 @@ class ApplicationsMixin:
             )
         except (RequestError, ResponseError) as e:
             logging.error(e)
-            return
+            raise RegisterError(e)
 
         if resp.status_code == 201:
             access_key = resp.json()['access_key']

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 #
 
-from cachetools import cached, TTLCache
-
 from .exception import ResponseError, RequestError
-from .models import Asset
+from .models import Asset, AssetGroup
 from .request import Http
 
 
@@ -29,7 +27,6 @@ class PermsMixin:
         else:
             return False
 
-    @cached(TTLCache(maxsize=100, ttl=60))
     def get_user_assets(self, user):
         """获取用户被授权的资产列表
         [{'hostname': 'x', 'ip': 'x', ...,
@@ -49,7 +46,7 @@ class PermsMixin:
 
     def get_user_asset_groups(self, user):
         """获取用户授权的资产组列表
-        [{'name': 'x', 'comment': 'x', 'assets_amount': 2}, ..]
+        [{'name': 'group1', 'comment': 'x', "assets_granted": ["id": "", "],}, ..]
         """
         try:
             resp = self.http.get('user-asset-groups', pk=user.id, use_auth=True)
@@ -57,21 +54,7 @@ class PermsMixin:
             return []
 
         if resp.status_code == 200:
-            asset_groups = content
+            asset_groups = AssetGroup.from_multi_json(resp.json())
         else:
             asset_groups = []
-        asset_groups = [asset_group for asset_group in asset_groups]
         return asset_groups
-
-    def get_user_asset_groups_assets(self, user):
-        """获取用户授权的资产组列表及下面的资产
-        [{'name': 'x', 'comment': 'x', 'assets': []}, ..]
-        """
-        r, content = self.http.get('user-asset-groups-assets', pk=user['id'],
-                                   use_auth=True)
-        if r.status_code == 200:
-            asset_groups_assets = content
-        else:
-            asset_groups_assets = []
-        return asset_groups_assets
-

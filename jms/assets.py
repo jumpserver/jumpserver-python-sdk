@@ -3,9 +3,9 @@
 import logging
 import paramiko
 
-
 from .exception import ResponseError, RequestError
 from .request import Http
+from .utils import PKey
 
 
 class AssetsMixin:
@@ -16,11 +16,15 @@ class AssetsMixin:
 
     def get_system_user_auth_info(self, system_user):
         """获取系统用户的认证信息: 密码, ssh私钥"""
-        r, content = self.http.get('system-user-auth-info',
-                                   pk=system_user['id'])
-        if r.status_code == 200:
-            password = content['password'] or ''
-            private_key_string = content['private_key'] or ''
+        try:
+            resp = self.http.get('system-user-auth-info',
+                                 pk=system_user['id'])
+        except (RequestError, ResponseError):
+            return None, None
+
+        if resp.status_code == 200:
+            password = resp.json()['password'] or None
+            private_key_string = resp.json()['private_key'] or None
 
             if private_key_string and private_key_string.find('PRIVATE KEY'):
                 private_key = PKey.from_string(private_key_string)
@@ -41,5 +45,3 @@ class AssetsMixin:
             logging.warning('Get system user %s password or private key failed'
                             % system_user['username'])
             return None, None
-
-

@@ -14,16 +14,14 @@ class UsersMixin:
 
     @property
     def role(self):
-        try:
-            resp = self.http.get('my-profile')
-        except (RequestError, ResponseError):
+        user = self.get_profile()
+        if user:
+            return user.role
+        else:
             return "Unknown"
 
-        user = User.from_json(resp.json())
-        return user.role
-
     def authenticate(self, username, password="", pubkey="",
-                     remote_addr="8.8.8.8", login_type='ST'):
+                     remote_addr="", login_type='ST'):
         data = {
             'username': username,
             'password': password,
@@ -34,13 +32,24 @@ class UsersMixin:
         try:
             resp = self.http.post('user-auth', data=data, use_auth=False)
         except (ResponseError, RequestError):
-            return None
+            return None, None
 
         if resp.status_code == 200:
             user = User.from_json(resp.json()["user"])
-            return user
+            token = resp.json()["token"]
+            return user, token
         else:
-            return None
+            return None, None
 
     def check_user_cookie(self, session_id, csrf_token):
         pass
+
+    def get_profile(self):
+        try:
+            resp = self.http.get('my-profile')
+        except (RequestError, ResponseError):
+            return None
+
+        user = User.from_json(resp.json())
+        return user
+

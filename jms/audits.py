@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 import base64
+import logging
 
 from .request import Http
 from .utils import timestamp_to_datetime_str

@@ -76,3 +76,14 @@ class SystemUser(Decoder):
 
     def __repr__(self):
         return self.name
+
+
+class AssetGroup(Decoder):
+    id = 0
+    name = ""
+
+    @classmethod
+    def from_json(cls, json_dict):
+        assets_granted = Asset.from_multi_json(json_dict["assets_granted"])
+        json_dict["assets_granted"] = assets_granted
+        return super().from_json(json_dict)
