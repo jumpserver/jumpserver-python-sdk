@@ -2,7 +2,7 @@
 #
 
 import unittest
-from unittest.mock import patch, Mock
+from unittest.mock import Mock
 
 from jms.applications import ApplicationsMixin
 from jms.exception import RegisterError, RequestError
@@ -70,7 +70,7 @@ class ApplicationMixinTestCase(unittest.TestCase):
 
         self.assertFalse(self.service.terminal_heartbeat())
 
-    def test_terminal_heatbeat_ok(self):
+    def test_terminal_heartbeat_ok(self):
         mock_post = Mock()
         resp_mock = Mock()
         resp_mock.status_code = 201

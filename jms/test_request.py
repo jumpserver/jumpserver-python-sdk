@@ -5,7 +5,8 @@ import json
 import unittest
 from unittest import mock
 
-from jms.request import HttpRequest
+from jms.request import HttpRequest, Http
+from jms.exception import ResponseError
 
 
 class TestHttpRequest(unittest.TestCase):
@@ -31,6 +32,33 @@ class TestHttpRequest(unittest.TestCase):
         self.request.do()
         self.assertTrue(mock_post.called)
         mock_post.assert_called_once_with(url=self.url, headers=self.request.headers, data=self.data_json, params=self.param)
+
+
+class TestHttp(unittest.TestCase):
+    def setUp(self):
+        self.endpoint = "http://www.jumpserver.org"
+        self.http = Http(self.endpoint)
+
+    def test_clean_result_gte_500(self):
+        resp_mock = mock.MagicMock()
+        resp_mock.status_code = 500
+
+        with self.assertRaises(ResponseError):
+            self.http.clean_result(resp_mock)
+
+    def test_clean_result_decode_error(self):
+        resp_mock = mock.MagicMock()
+        resp_mock.status_code = 200
+        resp_mock.json.side_effect = json.JSONDecodeError("error", "\n\n", 1)
+
+        with self.assertRaises(ResponseError):
+            self.http.clean_result(resp_mock)
+
+    def test_clean_result_ok(self):
+        resp_mock = mock.MagicMock()
+        resp_mock.status_code = 200
+
+        self.assertEqual(self.http.clean_result(resp_mock), resp_mock)
 
 
 if __name__ == '__main__':
