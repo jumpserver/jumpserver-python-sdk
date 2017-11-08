@@ -36,9 +36,8 @@ class AppService(Service):
         self.valid_auth()
 
     def load_access_key(self):
-        # Must be get access key if not register it
         self.access_key.load()
-        if self.access_key is None:
+        if not self.access_key:
             logging.info("No access key found, register it")
             self.register_and_save()
 
@@ -48,7 +47,7 @@ class AppService(Service):
     def valid_auth(self):
         delay = 1
         while delay < 300:
-            if self.terminal_heartbeat():
+            if not self.terminal_heartbeat():
                 msg = "Access key is not valid or need admin " \
                       "accepted, waiting %d s" % delay
                 logging.info(msg)

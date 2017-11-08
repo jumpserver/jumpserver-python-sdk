@@ -27,9 +27,9 @@ class ApplicationsMixin:
             access_key_secret = access_key['secret']
             return access_key_id, access_key_secret
         elif resp.status_code == 409:
-            raise RegisterError('{} exist already, register failed'.format(name))
+            raise RegisterError('{} exist already'.format(name))
         else:
-            msg = 'Register terminal {} failed unknown: {}'.format(name, resp.json())
+            msg = 'unknown: {}'.format(name, resp.json())
             raise RegisterError(msg)
 
     def terminal_heartbeat(self):

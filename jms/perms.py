@@ -19,10 +19,14 @@ class PermsMixin:
             'asset_id': asset_id,
             'system_user_id': system_user_id,
         }
-        r, content = self.http.get(
-            'validate-user-asset-permission', use_auth=True, params=params
-        )
-        if r.status_code == 200:
+        try:
+            resp = self.http.get(
+               'validate-user-asset-permission', use_auth=True, params=params
+            )
+        except (RequestError, ResponseError) as e:
+            return False
+
+        if resp.status_code == 200:
             return True
         else:
             return False
