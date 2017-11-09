@@ -1,10 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!coding: utf-8
 #
-from __future__ import unicode_literals
-
+# from __future__ import unicode_literals
+#
 import hashlib
 import re
+import os
 import threading
 import base64
 import calendar
@@ -12,12 +12,10 @@ import time
 import datetime
 from io import StringIO
 
+import paramiko
 import pyte
 import pytz
 from email.utils import formatdate
-
-import paramiko
-from dotmap import DotMap
 
 
 try:
@@ -26,8 +24,63 @@ except ImportError:
     from queue import Queue, Empty
 
 
-def b64encode_as_string(data):
-    return base64.b64encode(data).decode('utf-8')
+def ssh_key_string_to_obj(text):
+    key_f = StringIO(text)
+    key = None
+    try:
+        key = paramiko.RSAKey.from_private_key(key_f)
+    except paramiko.SSHException:
+        pass
+
+    try:
+        key = paramiko.DSSKey.from_private_key(key_f)
+    except paramiko.SSHException:
+        pass
+    return key
+
+
+def ssh_pubkey_gen(private_key=None, username='jumpserver', hostname='localhost'):
+    if isinstance(private_key, str):
+        private_key = ssh_key_string_to_obj(private_key)
+
+    if not isinstance(private_key, (paramiko.RSAKey, paramiko.DSSKey)):
+        raise IOError('Invalid private key')
+
+    public_key = "%(key_type)s %(key_content)s %(username)s@%(hostname)s" % {
+        'key_type': private_key.get_name(),
+        'key_content': private_key.get_base64(),
+        'username': username,
+        'hostname': hostname,
+    }
+    return public_key
+
+
+def ssh_key_gen(length=2048, type='rsa', password=None,
+                username='jumpserver', hostname=None):
+    """Generate user ssh private and public key
+
+    Use paramiko RSAKey generate it.
+    :return private key str and public key str
+    """
+
+    if hostname is None:
+        hostname = os.uname()[1]
+
+    f = StringIO()
+
+    try:
+        if type == 'rsa':
+            private_key_obj = paramiko.RSAKey.generate(length)
+        elif type == 'dsa':
+            private_key_obj = paramiko.DSSKey.generate(length)
+        else:
+            raise IOError('SSH private key must be `rsa` or `dsa`')
+        private_key_obj.write_private_key(f, password=password)
+        private_key = f.getvalue()
+        public_key = ssh_pubkey_gen(private_key_obj, username=username, hostname=hostname)
+        return private_key, public_key
+    except IOError:
+        raise IOError('These is error when generate ssh key.')
 
 
 def content_md5(data):
@@ -35,11 +88,13 @@ def content_md5(data):
 
     返回值可以直接作为HTTP Content-Type头部的值
     """
-    m = hashlib.md5(data.encode('utf-8'))
-    return base64.b64encode(m.digest()).decode('utf-8')
+    if isinstance(data, str):
+        data = hashlib.md5(data.encode('utf-8'))
+    value = base64.b64encode(data.digest())
+    return value.decode('utf-8')
+
 
 _STRPTIME_LOCK = threading.Lock()
-
 _GMT_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
 _ISO8601_FORMAT = "%Y-%m-%dT%H:%M:%S.000Z"
 
@@ -69,100 +124,18 @@ def iso8601_to_unixtime(time_string):
     return to_unixtime(time_string, _ISO8601_FORMAT)
 
 
-def make_signature(access_key_secret, date):
+def make_signature(access_key_secret, date=None):
     if isinstance(date, bytes):
-        date = date.decode("utf-8")
+        date = bytes.decode(date)
     if isinstance(date, int):
         date_gmt = http_date(date)
+    elif date is None:
+        date_gmt = http_date(int(time.time()))
     else:
         date_gmt = date
 
-    data = access_key_secret + "\n" + date_gmt
+    data = str(access_key_secret) + "\n" + date_gmt
     return content_md5(data)
-
-
-def split_string_int(s):
-    """Split string or int
-
-    example: test-01-02-db => ['test-', '01', '-', '02', 'db']
-    """
-    string_list = []
-    index = 0
-    pre_type = None
-    word = ''
-    for i in s:
-        if index == 0:
-            pre_type = int if i.isdigit() else str
-            word = i
-        else:
-            if pre_type is int and i.isdigit() or pre_type is str and not i.isdigit():
-                word += i
-            else:
-                string_list.append(word.lower() if not word.isdigit() else int(word))
-                word = i
-                pre_type = int if i.isdigit() else str
-        index += 1
-    string_list.append(word.lower() if not word.isdigit() else int(word))
-    return string_list
-
-
-def sort_assets(assets, order_by='hostname'):
-    if order_by == 'hostname':
-        key = lambda asset: split_string_int(asset['hostname'])
-        # print(assets)
-        # assets = sorted(assets, key=key)
-    elif order_by == 'ip':
-            assets = sorted(assets, key=lambda asset: [int(d) for d in asset['ip'].split('.') if d.isdigit()])
-    else:
-        key = lambda asset: asset.__getitem__(order_by)
-        assets = sorted(assets, key=key)
-    return assets
-
-
-class PKey(object):
-    @classmethod
-    def from_string(cls, key_string):
-        try:
-            pkey = paramiko.RSAKey(file_obj=StringIO(key_string))
-            return pkey
-        except paramiko.SSHException:
-            try:
-                pkey = paramiko.DSSKey(file_obj=StringIO(key_string))
-                return pkey
-            except paramiko.SSHException:
-                return None
-
-
-def from_string(cls, key_string):
-    return cls(key_string=key_string).pkey
-
-
-def timestamp_to_datetime_str(ts):
-    datetime_format = '%Y-%m-%dT%H:%M:%S.%fZ'
-    dt = datetime.datetime.fromtimestamp(ts, tz=pytz.timezone('UTC'))
-    return dt.strftime(datetime_format)
-
-
-def to_dotmap(data):
-    """将接受dict转换为DotMap"""
-    if isinstance(data, dict):
-        data = DotMap(data)
-    elif isinstance(data, list):
-        data = [DotMap(d) for d in data]
-    else:
-        raise ValueError('Dict or list type required...')
-    return data
-
-
-class MultiQueue(Queue):
-    def mget(self, size=1, block=True, timeout=5):
-        items = []
-        for i in range(size):
-            try:
-                items.append(self.get(block=block, timeout=timeout))
-            except Empty:
-                break
-        return items
 
 
 class TtyIOParser(object):
@@ -176,11 +149,17 @@ class TtyIOParser(object):
         return self.ps1_pattern.sub('', command)
 
     def parse_output(self, data, sep='\n'):
-        output = []
-        if not isinstance(data, bytes):
-            data = data.encode('utf-8', 'ignore')
+        """
+        Parse user command output
 
-        self.stream.feed(data)
+        :param data: output data list like, [b'data', b'data']
+        :param sep:  line separator
+        :return: output unicode data
+        """
+        output = []
+
+        for d in data:
+            self.stream.feed(d)
         for line in self.screen.display:
             if line.strip():
                 output.append(line)
@@ -188,11 +167,15 @@ class TtyIOParser(object):
         return sep.join(output[0:-1])
 
     def parse_input(self, data):
-        command = []
-        if not isinstance(data, bytes):
-            data = data.encode('utf-8', 'ignore')
+        """
+        Parse user input command
 
-        self.stream.feed(data)
+        :param data: input data list, like [b'data', b'data']
+        :return: command unicode
+        """
+        command = []
+        for d in data:
+            self.stream.feed(d)
         for line in self.screen.display:
             line = line.strip()
             if line:
@@ -207,10 +190,13 @@ class TtyIOParser(object):
 
 
 def wrap_with_line_feed(s, before=0, after=1):
+    if isinstance(s, bytes):
+        return b'\r\n' * before + s + b'\r\n' * after
     return '\r\n' * before + s + '\r\n' * after
 
 
-def wrap_with_color(text, color='white', background=None, bolder=False, underline=False):
+def wrap_with_color(text, color='white', background=None,
+                    bolder=False, underline=False):
     bolder_ = '1'
     underline_ = '4'
     color_map = {
@@ -242,7 +228,11 @@ def wrap_with_color(text, color='white', background=None, bolder=False, underlin
     if background:
         wrap_with.append(background_map.get(background, ''))
     wrap_with.append(color_map.get(color, ''))
-    return '\033[' + ';'.join(wrap_with) + 'm' + text + '\033[0m'
+
+    data = '\033[' + ';'.join(wrap_with) + 'm' + text + '\033[0m'
+    if isinstance(text, bytes):
+        return data.encode('utf-8')
+    return data
 
 
 def wrap_with_warning(text, bolder=False):
@@ -259,3 +249,75 @@ def wrap_with_primary(text, bolder=False):
 
 def wrap_with_title(text):
     return wrap_with_color(text, color='black', background='green')
+
+
+def b64encode_as_string(data):
+    return base64.b64encode(data).decode("utf-8")
+
+
+def split_string_int(s):
+    """Split string or int
+
+    example: test-01-02-db => ['test-', '01', '-', '02', 'db']
+    """
+    string_list = []
+    index = 0
+    pre_type = None
+    word = ''
+    for i in s:
+        if index == 0:
+            pre_type = int if i.isdigit() else str
+            word = i
+        else:
+            if pre_type is int and i.isdigit() or pre_type is str and not i.isdigit():
+                word += i
+            else:
+                string_list.append(word.lower() if not word.isdigit() else int(word))
+                word = i
+                pre_type = int if i.isdigit() else str
+        index += 1
+    string_list.append(word.lower() if not word.isdigit() else int(word))
+    return string_list
+
+
+def sort_assets(assets, order_by='hostname'):
+    if order_by == 'ip':
+        assets = sorted(assets, key=lambda asset: [int(d) for d in asset.ip.split('.') if d.isdigit()])
+    else:
+        assets = sorted(assets, key=lambda asset: getattr(asset, order_by))
+    return assets
+
+
+class PrivateKey(object):
+    @classmethod
+    def from_string(cls, key_string):
+        try:
+            pkey = paramiko.RSAKey(file_obj=StringIO(key_string))
+            return pkey
+        except paramiko.SSHException:
+            try:
+                pkey = paramiko.DSSKey(file_obj=StringIO(key_string))
+                return pkey
+            except paramiko.SSHException:
+                return None
+
+
+def timestamp_to_datetime_str(ts):
+    datetime_format = '%Y-%m-%dT%H:%M:%S.%fZ'
+    dt = datetime.datetime.fromtimestamp(ts, tz=pytz.timezone('UTC'))
+    return dt.strftime(datetime_format)
+
+
+class MultiQueue(Queue):
+    def mget(self, size=1, block=True, timeout=5):
+        items = []
+        for i in range(size):
+            try:
+                items.append(self.get(block=block, timeout=timeout))
+            except Empty:
+                break
+        return items
+
+
+#
+#

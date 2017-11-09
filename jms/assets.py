@@ -5,7 +5,7 @@ import paramiko
 
 from .exception import ResponseError, RequestError
 from .request import Http
-from .utils import PKey
+from .utils import PrivateKey
 
 
 class AssetsMixin:
@@ -27,7 +27,7 @@ class AssetsMixin:
             private_key_string = resp.json()['private_key'] or None
 
             if private_key_string and private_key_string.find('PRIVATE KEY'):
-                private_key = PKey.from_string(private_key_string)
+                private_key = PrivateKey.from_string(private_key_string)
             else:
                 private_key = None
 

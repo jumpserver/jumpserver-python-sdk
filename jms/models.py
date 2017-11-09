@@ -52,6 +52,7 @@ class Asset(Decoder):
     system_users_granted = []
     is_active = False
     system_users_join = ""
+    comment = ""
 
     @classmethod
     def from_json(cls, json_dict):
