@@ -18,7 +18,7 @@ class AssetsMixin:
         """获取系统用户的认证信息: 密码, ssh私钥"""
         try:
             resp = self.http.get('system-user-auth-info',
-                                 pk=system_user['id'])
+                                 pk=system_user.id)
         except (RequestError, ResponseError):
             return None, None
 
@@ -38,10 +38,10 @@ class AssetsMixin:
                 private_key_log_msg = 'None'
 
             logging.debug('Get system user %s password: %s*** key: %s***' %
-                          (system_user['username'], password[:4],
+                          (system_user.username, password[:4],
                            private_key_log_msg))
             return password, private_key
         else:
             logging.warning('Get system user %s password or private key failed'
-                            % system_user['username'])
+                            % system_user.username)
             return None, None

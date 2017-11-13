@@ -78,15 +78,17 @@ class SystemUser(Decoder):
     private_key = None
 
     def __str__(self):
-        return self.name
+        return self.username
 
     def __repr__(self):
-        return self.name
+        return self.username
 
 
 class AssetGroup(Decoder):
     id = 0
     name = ""
+    assets_amount = 0
+    comment = ""
 
     @classmethod
     def from_json(cls, json_dict):
