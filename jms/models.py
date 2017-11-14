@@ -15,7 +15,8 @@ class Decoder:
         for k, v in json_dict.items():
             if isinstance(getattr(self, k, None), datetime.datetime):
                 v = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
-            setattr(self, k, v)
+            if hasattr(self, k):
+                setattr(self, k, v)
         return self
 
     @classmethod
@@ -95,3 +96,9 @@ class AssetGroup(Decoder):
         assets_granted = Asset.from_multi_json(json_dict["assets_granted"])
         json_dict["assets_granted"] = assets_granted
         return super().from_json(json_dict)
+
+
+class TerminalTask(Decoder):
+    name = ""
+    args = ""
+    is_finished = False

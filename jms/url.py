@@ -5,7 +5,7 @@
 
 API_URL_MAPPING = {
     'terminal-register': '/api/applications/v1/terminal/',
-    'terminal-heartbeat': '/api/applications/v1/terminal/heartbeat/',
+    'terminal-heartbeat': '/api/applications/v1/terminal/status/',
     'user-auth': '/api/users/v1/auth/',
     'user-assets': '/api/perms/v1/user/%s/assets/',
     'user-asset-groups': '/api/perms/v1/user/%s/asset-groups/',

@@ -47,7 +47,7 @@ class AppService(Service):
     def valid_auth(self):
         delay = 1
         while delay < 300:
-            if not self.terminal_heartbeat():
+            if not self.get_profile():
                 msg = "Access key is not valid or need admin " \
                       "accepted, waiting %d s" % delay
                 logging.info(msg)
