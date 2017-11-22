@@ -18,6 +18,9 @@ class AccessKeyAuth:
         req.headers['Authorization'] = "Sign {0}:{1}".format(self.access_key.id, signature)
         return req
 
+    def __bool__(self):
+        return bool(self.access_key)
+
 
 class TokenAuth:
     def __init__(self, token):
@@ -26,6 +29,9 @@ class TokenAuth:
     def sign_request(self, req):
         req.headers['Authorization'] = 'Bearer {0}'.format(self.token)
         return req
+
+    def __bool__(self):
+        return self.token != ""
 
 
 class SessionAuth:
@@ -42,6 +48,9 @@ class SessionAuth:
         req.headers['X-CSRFTOKEN'] = self.csrf_token
         return req
 
+    def __bool__(self):
+        return self.session_id != ""
+
 
 class PrivateTokenAuth:
 
@@ -51,6 +60,9 @@ class PrivateTokenAuth:
     def sign_request(self, req):
         req.headers['Authorization'] = 'Token {0}'.format(self.token)
         return req
+
+    def __bool__(self):
+        return self.token != ""
 
 
 class AccessKey(object):
@@ -100,7 +112,7 @@ class AccessKey(object):
             f.close()
 
     def __bool__(self):
-        return bool(self.id and self.secret)
+        return self.id != "" and self.secret != ""
 
     def __eq__(self, other):
         return self.id == other.id and self.secret == other.secret

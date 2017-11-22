@@ -62,13 +62,34 @@ class ApplicationsMixin:
             "session_online": len([s for s in sessions if not s["is_finished"]]),
             "sessions": sessions,
         }
-        print(sessions)
         try:
             resp = self.http.post('terminal-heartbeat', data=data, use_auth=True)
-        except (ResponseError, RequestError):
+        except (ResponseError, RequestError) as e:
+            logging.debug("Request auth: {}".format(self.http.auth))
+            logging.error(e)
             return False
 
         if resp.status_code == 201:
             return []
         else:
             return []
+
+    def push_session_replay(self, archive_file, session_id):
+        with open(archive_file, 'rb') as f:
+            files = {"archive": f}
+            try:
+                resp = self.http.post(
+                    'session-replay', files=files,
+                    content_type=None, pk=session_id
+                )
+            except (ResponseError, RequestError) as e:
+                logging.error(e)
+                return False
+
+            if resp.status_code == 201:
+                return True
+            else:
+                return False
+
+
+

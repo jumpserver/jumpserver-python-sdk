@@ -38,6 +38,9 @@ class User(Decoder):
     comment = ""
     date_expired = datetime.datetime.now()
 
+    def __bool__(self):
+        return self.id != 0
+
     def __str__(self):
         return self.name
 

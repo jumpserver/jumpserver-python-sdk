@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 #
 
+import logging
+
 from .exception import ResponseError, RequestError
 from .models import Asset, AssetGroup
 from .request import Http
@@ -39,7 +41,8 @@ class PermsMixin:
         """
         try:
             resp = self.http.get('user-assets', pk=user.id, use_auth=True)
-        except (RequestError, ResponseError):
+        except (RequestError, ResponseError) as e:
+            logging.error("{}".format(e))
             return []
 
         if resp.status_code == 200:

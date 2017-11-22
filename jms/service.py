@@ -24,6 +24,7 @@ class Service(UsersMixin, ApplicationsMixin, PermsMixin, AssetsMixin, AuditsMixi
 
 class AppService(Service):
     access_key_class = AppAccessKey
+    auth_class = AccessKeyAuth
 
     def __init__(self, app):
         super().__init__(app.config['CORE_HOST'])
@@ -31,23 +32,28 @@ class AppService(Service):
         self.access_key = self.access_key_class(self.app)
 
     def initial(self):
+        logging.debug("Initial app service")
         self.load_access_key()
         self.set_auth()
         self.valid_auth()
+        logging.debug("Service http auth: {}".format(self.http.auth))
 
     def load_access_key(self):
+        logging.debug("Load access key")
         self.access_key.load()
         if not self.access_key:
             logging.info("No access key found, register it")
             self.register_and_save()
 
     def set_auth(self):
-        self.http.auth = AccessKeyAuth(self.access_key)
+        logging.debug("Set app service auth: {}".format(self.access_key))
+        self.http.set_auth(self.auth_class(self.access_key))
 
     def valid_auth(self):
         delay = 1
         while delay < 300:
-            if not self.get_profile():
+            user = self.get_profile()
+            if not user:
                 msg = "Access key is not valid or need admin " \
                       "accepted, waiting %d s" % delay
                 logging.info(msg)

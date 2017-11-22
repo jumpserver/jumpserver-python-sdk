@@ -2,6 +2,7 @@
 #
 import os
 import json
+import simplejson
 import logging
 
 import requests
@@ -12,7 +13,6 @@ from .url import API_URL_MAPPING
 
 _USER_AGENT = 'jms-sdk-py'
 CACHED_TTL = os.environ.get('CACHED_TTL', 30)
-logger = logging.getLogger(__file__)
 
 
 class HttpRequest(object):
@@ -25,23 +25,31 @@ class HttpRequest(object):
     }
 
     def __init__(self, url, method='get', data=None, params=None,
-                 headers=None, content_type='application/json'):
+                 headers=None, content_type='application/json', **kwargs):
         self.url = url
         self.method = method
         self.params = params or {}
+        self.kwargs = kwargs
 
         if not isinstance(headers, dict):
             headers = {}
         self.headers = CaseInsensitiveDict(headers)
-        self.headers['Content-Type'] = content_type
-        if data is None:
-            data = {}
-        self.data = json.dumps(data)
+        if content_type:
+            self.headers['Content-Type'] = content_type
+        if data:
+            self.data = json.dumps(data)
+        else:
+            self.data = {}
 
     def do(self):
+        # logging.debug("{} {}: \n\tHeaders {}, \n\tData {}, \n\tParams {}, \n\tOther: {}".format(
+        #     self.method.upper(), self.url, self.headers,
+        #     self.data, self.params, self.kwargs
+        # ))
         result = self.methods.get(self.method)(
             url=self.url, headers=self.headers,
-            data=self.data, params=self.params
+            data=self.data, params=self.params,
+            **self.kwargs
         )
         return result
 
@@ -52,6 +60,9 @@ class Http(object):
         self.auth = auth
         self.endpoint = endpoint
 
+    def set_auth(self, auth):
+        self.auth = auth
+
     @staticmethod
     def clean_result(resp):
         if resp.status_code >= 500:
@@ -59,13 +70,13 @@ class Http(object):
 
         try:
             _ = resp.json()
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, simplejson.scanner.JSONDecodeError):
             raise ResponseError("Response json couldn't be decode: {0.text}".format(resp))
         else:
             return resp
 
     def do(self, api_name=None, pk=None, method='get', use_auth=True,
-           data=None, params=None, content_type='application/json'):
+           data=None, params=None, content_type='application/json', **kwargs):
 
         if api_name in API_URL_MAPPING:
             path = API_URL_MAPPING.get(api_name)
@@ -76,7 +87,8 @@ class Http(object):
 
         url = self.endpoint.rstrip('/') + path
         req = HttpRequest(url, method=method, data=data,
-                          params=params, content_type=content_type)
+                          params=params, content_type=content_type,
+                          **kwargs)
         if use_auth:
             if not self.auth:
                 raise RequestError('Authentication required')
