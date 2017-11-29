@@ -91,5 +91,16 @@ class ApplicationsMixin:
             else:
                 return False
 
+    def push_session_command(self, data_set):
+        try:
+            resp = self.http.post('session-command', data=data_set)
+        except (RequestError, ResponseError) as e:
+            logging.error(e)
+            return False
+        if resp.status_code == 201:
+            return True
+        else:
+            return False
+
 
 

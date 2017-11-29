@@ -112,7 +112,7 @@ class AccessKey(object):
             f.close()
 
     def __bool__(self):
-        return self.id != "" and self.secret != ""
+        return bool(self.id) and bool(self.secret)
 
     def __eq__(self, other):
         return self.id == other.id and self.secret == other.secret
