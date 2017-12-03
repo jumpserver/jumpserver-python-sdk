@@ -6,10 +6,11 @@ import os
 import psutil
 
 from .request import Http
+from .models import TerminalTask
 from .exception import RequestError, ResponseError, RegisterError
 
 
-class ApplicationsMixin:
+class TerminalMixin:
     def __init__(self, endpoint, auth=None):
         self.endpoint = endpoint
         self.auth = auth
@@ -70,7 +71,7 @@ class ApplicationsMixin:
             return False
 
         if resp.status_code == 201:
-            return []
+            return TerminalTask.from_multi_json(resp.json())
         else:
             return []
 
@@ -102,5 +103,17 @@ class ApplicationsMixin:
         else:
             return False
 
+    def finish_task(self, task_id):
+        data = {"is_finished": True}
+        try:
+            resp = self.http.patch('finish-task', pk=task_id, data=data)
+        except (RequestError, ResponseError) as e:
+            logging.error(e)
+            return False
+
+        if resp.status_code == 200:
+            return True
+        else:
+            return False
 
 

@@ -102,6 +102,7 @@ class AssetGroup(Decoder):
 
 
 class TerminalTask(Decoder):
+    id = ""
     name = ""
     args = ""
     is_finished = False

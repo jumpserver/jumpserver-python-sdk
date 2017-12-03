@@ -8,14 +8,14 @@ import time
 from .exception import RegisterError
 from .auth import AppAccessKey, AccessKeyAuth, TokenAuth
 from .request import Http
-from .applications import ApplicationsMixin
+from .terminal import TerminalMixin
 from .perms import PermsMixin
 from .users import UsersMixin
 from .assets import AssetsMixin
 from .audits import AuditsMixin
 
 
-class Service(UsersMixin, ApplicationsMixin, PermsMixin, AssetsMixin, AuditsMixin):
+class Service(UsersMixin, TerminalMixin, PermsMixin, AssetsMixin, AuditsMixin):
     def __init__(self, endpoint, auth=None):
         self.endpoint = endpoint
         self.auth = auth
