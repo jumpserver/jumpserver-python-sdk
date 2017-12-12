@@ -20,12 +20,12 @@ class UsersMixin:
         else:
             return "Unknown"
 
-    def authenticate(self, username, password="", pubkey="",
+    def authenticate(self, username, password="", public_key="",
                      remote_addr="", login_type='ST'):
         data = {
             'username': username,
             'password': password,
-            'public_key': pubkey,
+            'public_key': public_key,
             'remote_addr': remote_addr,
             'login_type': login_type,
         }

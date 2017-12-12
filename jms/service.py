@@ -91,7 +91,7 @@ class UserService(Service):
             logging.info("You need login first")
 
     def login(self, username, password=None, pubkey=None):
-        user, token = self.authenticate(username, password=password, pubkey=pubkey)
+        user, token = self.authenticate(username, password=password, public_key=pubkey)
         if user.is_active and user.date_expired > datetime.datetime.now():
             self.auth = TokenAuth(token=token)
         self.username = username
