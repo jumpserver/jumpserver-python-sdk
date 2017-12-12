@@ -12,10 +12,9 @@ from .terminal import TerminalMixin
 from .perms import PermsMixin
 from .users import UsersMixin
 from .assets import AssetsMixin
-from .audits import AuditsMixin
 
 
-class Service(UsersMixin, TerminalMixin, PermsMixin, AssetsMixin, AuditsMixin):
+class Service(UsersMixin, TerminalMixin, PermsMixin, AssetsMixin):
     def __init__(self, endpoint, auth=None):
         self.endpoint = endpoint
         self.auth = auth

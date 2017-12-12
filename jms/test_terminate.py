@@ -4,14 +4,14 @@
 import unittest
 from unittest.mock import Mock
 
-from jms.applications import ApplicationsMixin
+from jms.terminal import TerminalMixin
 from jms.exception import RegisterError, RequestError
 
 
 class ApplicationMixinTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.service = ApplicationsMixin("http://locahost")
+        self.service = TerminalMixin("http://locahost")
 
     def test_terminal_register_raise_exception(self):
         mock = Mock()
