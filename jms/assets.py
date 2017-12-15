@@ -14,6 +14,18 @@ class AssetsMixin:
         self.auth = auth
         self.http = Http(endpoint, auth=self.auth)
 
+    def get_asset(self, asset_id):
+        """
+        获取用户资产
+        :param asset_id: 
+        :return: 
+        """
+        try:
+            resp = self.http.get('asset', pk=asset_id)
+            return resp
+        except (RequestError, ResponseError):
+            return None
+
     def get_system_user_auth_info(self, system_user):
         """获取系统用户的认证信息: 密码, ssh私钥"""
         try:
