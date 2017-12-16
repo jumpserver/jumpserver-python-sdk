@@ -16,4 +16,5 @@ API_URL_MAPPING = {
     'validate-user-asset-permission': '/api/perms/v1/asset-permission/user/validate/',
     'finish-task': '/api/terminal/v1/tasks/%s/',
     'asset': '/api/assets/v1/assets/%s/',
+    'system-user': '/api/assets/v1/system-user/%s',
 }

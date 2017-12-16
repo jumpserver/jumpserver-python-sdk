@@ -6,6 +6,7 @@ import paramiko
 from .exception import ResponseError, RequestError
 from .request import Http
 from .utils import PrivateKey
+from .models import Asset, SystemUser
 
 
 class AssetsMixin:
@@ -22,8 +23,29 @@ class AssetsMixin:
         """
         try:
             resp = self.http.get('asset', pk=asset_id)
-            return resp
         except (RequestError, ResponseError):
+            return None
+        if resp.status_code == 200:
+            asset = Asset.from_json(resp.json())
+            return asset
+        else:
+            return None
+
+    def get_system_user(self, user_id):
+        """
+              获取用户资产
+              :param user_id:
+              :return:
+              """
+        try:
+            resp = self.http.get('system-user', pk=user_id)
+        except (RequestError, ResponseError):
+            return None
+        if resp.status_code == 200:
+            print(resp.json())
+            asset = SystemUser.from_json(resp.json())
+            return asset
+        else:
             return None
 
     def get_system_user_auth_info(self, system_user):
