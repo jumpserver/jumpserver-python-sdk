@@ -61,8 +61,11 @@ class Asset(Decoder):
 
     @classmethod
     def from_json(cls, json_dict):
-        system_users_granted = SystemUser.from_multi_json(json_dict["system_users_granted"])
-        json_dict["system_users_granted"] = system_users_granted
+        try:
+            system_users_granted = SystemUser.from_multi_json(json_dict["system_users_granted"])
+            json_dict["system_users_granted"] = system_users_granted
+        except KeyError:
+            pass
         return super().from_json(json_dict)
 
     @property
