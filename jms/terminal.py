@@ -75,9 +75,9 @@ class TerminalMixin:
         else:
             return []
 
-    def push_session_replay(self, archive_file, session_id):
-        with open(archive_file, 'rb') as f:
-            files = {"archive": f}
+    def push_session_replay(self, gzip_file, session_id):
+        with open(gzip_file, 'rb') as f:
+            files = {"file": f}
             try:
                 resp = self.http.post(
                     'session-replay', files=files,
@@ -91,6 +91,19 @@ class TerminalMixin:
                 return True
             else:
                 return False
+
+    def get_session_replay(self, session_id):
+        try:
+            resp = self.http.get('session-replay', pk=session_id)
+        except (RequestError, ResponseError) as e:
+            logging.error(e)
+            return None
+
+        if resp.status_code == 200:
+            return resp
+        else:
+            logging.error("Session replay response code not 200")
+            return None
 
     def push_session_command(self, data_set):
         try:
