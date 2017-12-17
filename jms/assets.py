@@ -37,9 +37,14 @@ class AssetsMixin:
             else:
                 private_key_log_msg = 'None'
 
-            logging.debug('Get system user %s password: %s*** key: %s***' %
-                          (system_user.username, password[:4],
-                           private_key_log_msg))
+            if password:
+                password_log_msg = password[:4]
+            else:
+                password_log_msg = 'None'
+
+            logging.debug('Get system user {} password: {}*** key: {}***'.format(
+                system_user.username, password_log_msg, private_key_log_msg
+            ))
             return password, private_key
         else:
             logging.warning('Get system user %s password or private key failed'

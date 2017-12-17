@@ -55,14 +55,25 @@ class Asset(Decoder):
     port = 22
     system_users_granted = []
     is_active = False
-    system_users_join = ""
+    system_users_join = ''
     comment = ""
+    _system_users_name_list = None
 
     @classmethod
     def from_json(cls, json_dict):
         system_users_granted = SystemUser.from_multi_json(json_dict["system_users_granted"])
         json_dict["system_users_granted"] = system_users_granted
         return super().from_json(json_dict)
+
+    @property
+    def system_users_name_list(self):
+        """
+        重写system_users_join，因为coco这里显示的是优先级最高的system_user
+        :return:
+        """
+        if self._system_users_name_list:
+            return self._system_users_name_list
+        return '[' + ', '.join([s.name for s in self.system_users_granted]) + ']'
 
     def __str__(self):
         return self.hostname
@@ -79,6 +90,7 @@ class SystemUser(Decoder):
     auth_method = "P"
     comment = ""
     password = ""
+    priority = 0
     private_key = None
 
     def __str__(self):
