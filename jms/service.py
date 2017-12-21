@@ -456,6 +456,29 @@ class UserService(ApiRequest):
         else:
             return None, None
 
+    def is_enable_otp(self):
+        """判断用户是否开启过 OTP 验证"""
+        r, content = self.get('is-enable-otp', use_auth=True)
+        if r.status_code == 200:
+            if content['enable_otp']:
+                return True
+            else:
+                return False
+        else:
+            return None
+
+    def verify_token(self, otp_token):
+        """根据用户提效的 otp_token，判断是否能够登陆"""
+        data = {'otp_token': otp_token}
+        r, content = self.post('verify-token', data=data)
+        if r.status_code == 200:
+            if content['verify_token_result']:
+                return True, ''
+            else:
+                return False, content['error']
+        else:
+            return None, None
+
     @cached(TTLCache(maxsize=100, ttl=60))
     def is_authenticated(self):
         """根据签名判断用户是否认证"""
