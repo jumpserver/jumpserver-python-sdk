@@ -46,7 +46,7 @@ class UsersMixin:
 
     def get_profile(self):
         try:
-            resp = self.http.get('my-profile')
+            resp = self.http.get('my-profile', use_auth=True)
         except (RequestError, ResponseError):
             return None
 

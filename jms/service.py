@@ -46,29 +46,47 @@ class AppService(Service):
 
     def set_auth(self):
         logging.debug("Set app service auth: {}".format(self.access_key))
+        self.auth = self.auth_class(self.access_key)
         self.http.set_auth(self.auth_class(self.access_key))
 
     def valid_auth(self):
         delay = 1
-        while delay < 300:
+        while delay < 10:
             user = self.get_profile()
             if not user:
-                msg = "Access key is not valid or need admin " \
-                      "accepted, waiting %d s" % delay
-                logging.info(msg)
+                msg = "Access key is not valid"
+                logging.error(msg)
                 delay += 3
                 time.sleep(3)
             else:
                 break
-        if delay >= 300:
-            logging.info("Start timeout")
+        if delay >= 10:
             sys.exit()
+
+    def wait_for_accept(self, uuid, token):
+        delay = 1
+        while delay < 3600:
+            try:
+                self.access_key.id, self.access_key.secret = self.retrieve_access_key(
+                    uuid, token,
+                )
+                break
+            except RegisterError as e:
+                logging.info(e)
+                delay += 3
+                time.sleep(3)
+                continue
 
     def register_and_save(self):
         try:
-            self.access_key.id, self.access_key.secret = self.terminal_register(self.app.name)
+            uuid, token = self.terminal_register(self.app.name)
         except RegisterError as e:
             logging.error("Failed register terminal %s" % e)
+            sys.exit()
+
+        self.wait_for_accept(uuid, token)
+        if not self.access_key:
+            logging.error("Register error")
             sys.exit()
         self.save_access_key()
 
