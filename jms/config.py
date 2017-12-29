@@ -19,4 +19,6 @@ API_URL_MAPPING = {
     'system-user-auth-info': '/api/assets/v1/system-user/%s/auth-info/',
     'validate-user-asset-permission':
         '/api/perms/v1/asset-permission/user/validate/',
+    'is-check-otp': '/api/users/v1/is-check-otp/',
+    'verify-token': '/api/users/v1/verify-token/',
 }

@@ -456,6 +456,30 @@ class UserService(ApiRequest):
         else:
             return None, None
 
+    def is_check_otp(self, remote_addr):
+        """判断用户是否开启过 OTP 验证"""
+        data = {'remote_addr': remote_addr}
+        r, content = self.post('is-check-otp', data=data, use_auth=True)
+        if r.status_code == 200:
+            if content['check_otp']:
+                return True
+            else:
+                return False
+        else:
+            return None
+
+    def verify_token(self, otp_token, remote_addr):
+        """根据用户提效的 otp_token，判断是否能够登陆"""
+        data = {'otp_token': otp_token, 'remote_addr': remote_addr}
+        r, content = self.post('verify-token', data=data, use_auth=True)
+        if r.status_code == 200:
+            if content['verify_token_result']:
+                return True, ''
+            else:
+                return False, content['error']
+        else:
+            return None, None
+
     @cached(TTLCache(maxsize=100, ttl=60))
     def is_authenticated(self):
         """根据签名判断用户是否认证"""
