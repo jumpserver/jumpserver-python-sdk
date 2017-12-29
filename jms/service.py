@@ -456,21 +456,22 @@ class UserService(ApiRequest):
         else:
             return None, None
 
-    def is_enable_otp(self):
+    def is_check_otp(self, remote_addr):
         """判断用户是否开启过 OTP 验证"""
-        r, content = self.get('is-enable-otp', use_auth=True)
+        data = {'remote_addr': remote_addr}
+        r, content = self.post('is-check-otp', data=data, use_auth=True)
         if r.status_code == 200:
-            if content['enable_otp']:
+            if content['check_otp']:
                 return True
             else:
                 return False
         else:
             return None
 
-    def verify_token(self, otp_token):
+    def verify_token(self, otp_token, remote_addr):
         """根据用户提效的 otp_token，判断是否能够登陆"""
-        data = {'otp_token': otp_token}
-        r, content = self.post('verify-token', data=data)
+        data = {'otp_token': otp_token, 'remote_addr': remote_addr}
+        r, content = self.post('verify-token', data=data, use_auth=True)
         if r.status_code == 200:
             if content['verify_token_result']:
                 return True, ''
