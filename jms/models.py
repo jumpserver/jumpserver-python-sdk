@@ -11,10 +11,14 @@ class Decoder:
 
     @classmethod
     def from_json(cls, json_dict):
+        print(json_dict)
         self = cls()
         for k, v in json_dict.items():
-            if isinstance(getattr(self, k, None), datetime.datetime):
-                v = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+            if isinstance(getattr(self, k, None), datetime.datetime) and v:
+                try:
+                    v = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+                except TypeError:
+                    pass
             if hasattr(self, k):
                 setattr(self, k, v)
         return self
