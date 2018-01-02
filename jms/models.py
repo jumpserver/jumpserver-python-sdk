@@ -111,6 +111,7 @@ class AssetGroup(Decoder):
     name = ""
     assets_amount = 0
     comment = ""
+    assets_granted = []
 
     @classmethod
     def from_json(cls, json_dict):
