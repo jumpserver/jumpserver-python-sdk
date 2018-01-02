@@ -43,7 +43,8 @@ class UsersMixin:
 
     def check_user_cookie(self, session_id, csrf_token):
         try:
-            resp = self.http.get('user-profile')
+            headers = {"Cookie": "csrftoken={};sessionid={}".format(csrf_token, session_id)}
+            resp = self.http.get('user-profile', headers=headers, use_auth=False)
         except (RequestError, ResponseError):
             return None
         return User.from_json(resp.json())
