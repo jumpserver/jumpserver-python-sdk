@@ -16,6 +16,22 @@ class TerminalMixin:
         self.auth = auth
         self.http = Http(endpoint, auth=self.auth)
 
+    def retrieve_access_key(self, uuid, token):
+        try:
+            params = {"token": token}
+            resp = self.http.get('terminal-access-key', pk=uuid, params=params, use_auth=False)
+        except (ResponseError, RequestError) as e:
+            logging.error(e)
+            raise RegisterError(e)
+
+        if resp.status_code in (400, 401):
+            raise RegisterError(resp.text)
+        print(resp.text)
+        access_key = resp.json()["access_key"]
+        access_key_id = access_key['id']
+        access_key_secret = access_key['secret']
+        return access_key_id, access_key_secret
+
     def terminal_register(self, name):
         try:
             resp = self.http.post(
@@ -26,10 +42,10 @@ class TerminalMixin:
             raise RegisterError(e)
 
         if resp.status_code == 201:
-            access_key = resp.json()['access_key']
-            access_key_id = access_key['id']
-            access_key_secret = access_key['secret']
-            return access_key_id, access_key_secret
+            data = resp.json()
+            uuid = data["id"]
+            token = data["token"]
+            return uuid, token
         elif resp.status_code == 409:
             raise RegisterError('{} exist already'.format(name))
         else:
@@ -69,6 +85,9 @@ class TerminalMixin:
             logging.debug("Request auth: {}".format(self.http.auth))
             logging.error(e)
             return False
+
+        if resp.status_code == 403:
+            logging.debug("Auth failed")
 
         if resp.status_code == 201:
             return TerminalTask.from_multi_json(resp.json())

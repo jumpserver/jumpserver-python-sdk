@@ -5,6 +5,7 @@
 
 API_URL_MAPPING = {
     'terminal-register': '/api/terminal/v1/terminal/',
+    'terminal-access-key': '/api/terminal/v1/terminal/%s/access-key',
     'terminal-heartbeat': '/api/terminal/v1/terminal/status/',
     'session-replay': '/api/terminal/v1/sessions/%s/replay/',
     'session-command': '/api/terminal/v1/command/',

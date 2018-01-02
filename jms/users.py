@@ -21,7 +21,7 @@ class UsersMixin:
             return "Unknown"
 
     def authenticate(self, username, password="", public_key="",
-                     remote_addr="", login_type='ST'):
+                     remote_addr="", login_type='T'):
         data = {
             'username': username,
             'password': password,
@@ -50,7 +50,7 @@ class UsersMixin:
 
     def get_profile(self):
         try:
-            resp = self.http.get('my-profile')
+            resp = self.http.get('my-profile', use_auth=True)
         except (RequestError, ResponseError):
             return None
 
