@@ -17,4 +17,5 @@ API_URL_MAPPING = {
     'finish-task': '/api/terminal/v1/tasks/%s/',
     'asset': '/api/assets/v1/assets/%s/',
     'system-user': '/api/assets/v1/system-user/%s',
+    'user-profile': '/api/users/v1/profile/',
 }

@@ -42,7 +42,11 @@ class UsersMixin:
             return None, None
 
     def check_user_cookie(self, session_id, csrf_token):
-        pass
+        try:
+            resp = self.http.get('user-profile')
+        except (RequestError, ResponseError):
+            return None
+        return User.from_json(resp.json())
 
     def get_profile(self):
         try:
@@ -52,4 +56,3 @@ class UsersMixin:
 
         user = User.from_json(resp.json())
         return user
-
