@@ -5,7 +5,7 @@ import paramiko
 
 from .exception import ResponseError, RequestError
 from .request import Http
-from .utils import PrivateKey
+from .utils import ssh_key_string_to_obj
 from .models import Asset, SystemUser
 
 
@@ -61,7 +61,7 @@ class AssetsMixin:
             private_key_string = resp.json()['private_key'] or None
 
             if private_key_string and private_key_string.find('PRIVATE KEY'):
-                private_key = PrivateKey.from_string(private_key_string)
+                private_key = ssh_key_string_to_obj(private_key_string, password)
             else:
                 private_key = None
 

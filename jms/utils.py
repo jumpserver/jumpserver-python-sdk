@@ -24,16 +24,15 @@ except ImportError:
     from queue import Queue, Empty
 
 
-def ssh_key_string_to_obj(text):
-    key_f = StringIO(text)
+def ssh_key_string_to_obj(text, password=None):
     key = None
     try:
-        key = paramiko.RSAKey.from_private_key(key_f)
+        key = paramiko.RSAKey.from_private_key(StringIO(text), password=password)
     except paramiko.SSHException:
         pass
 
     try:
-        key = paramiko.DSSKey.from_private_key(key_f)
+        key = paramiko.DSSKey.from_private_key(StringIO(text), password=password)
     except paramiko.SSHException:
         pass
     return key
@@ -317,7 +316,3 @@ class MultiQueue(Queue):
             except Empty:
                 break
         return items
-
-
-#
-#
