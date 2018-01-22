@@ -29,8 +29,7 @@ setup(
     author='Jumpserver team',
     author_email='ibuler@qq.com',
     install_requires=[
-        'dotmap>=1.2.14',
-        'paramiko>=2.1.1',
+        'paramiko==2.4.0s',
         'requests>=2.11.1',
         'cachetools>=2.0.0',
         'pytz==2017.2',

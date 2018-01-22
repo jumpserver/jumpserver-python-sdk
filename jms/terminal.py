@@ -26,7 +26,6 @@ class TerminalMixin:
 
         if resp.status_code in (400, 401):
             raise RegisterError(resp.text)
-        print(resp.text)
         access_key = resp.json()["access_key"]
         access_key_id = access_key['id']
         access_key_secret = access_key['secret']
@@ -147,5 +146,19 @@ class TerminalMixin:
             return True
         else:
             return False
+
+    def load_config_from_server(self):
+        try:
+            resp = self.http.get('terminal-config')
+        except (RegisterError, ResponseError) as e:
+            logging.error(e)
+            return {}
+        if resp.status_code == 200:
+            configs = {}
+            data = resp.json()
+            for k, v in data.items():
+                configs[k.replace('TERMINAL_', '')] = v
+            return configs
+
 
 
