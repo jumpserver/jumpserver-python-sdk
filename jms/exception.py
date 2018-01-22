@@ -19,3 +19,4 @@ class ResponseError(Exception):
 
 class RegisterError(Exception):
     pass
+

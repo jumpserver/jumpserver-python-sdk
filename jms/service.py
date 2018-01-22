@@ -54,7 +54,8 @@ class AppService(Service):
         while delay < 10:
             user = self.get_profile()
             if not user:
-                msg = "Access key is not valid"
+                msg = "Connect server error or access key is invalid, " \
+                      "remove `./keys/.access_key` run again"
                 logging.error(msg)
                 delay += 3
                 time.sleep(3)
