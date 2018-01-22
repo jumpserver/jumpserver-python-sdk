@@ -3,6 +3,7 @@
 # from __future__ import unicode_literals
 #
 import hashlib
+import logging
 import re
 import os
 import threading
@@ -316,3 +317,7 @@ class MultiQueue(Queue):
             except Empty:
                 break
         return items
+
+
+def get_logger(filename):
+    return logging.getLogger('jms.'+filename)

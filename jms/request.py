@@ -3,7 +3,6 @@
 import os
 import json
 import simplejson
-import logging
 
 import requests
 from requests.structures import CaseInsensitiveDict

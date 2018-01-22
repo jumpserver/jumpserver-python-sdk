@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 #
-import logging
 
 import os
 import psutil
 
+from .utils import get_logger
 from .request import Http
 from .models import TerminalTask
 from .exception import RequestError, ResponseError, RegisterError
+
+logger = get_logger(__file__)
 
 
 class TerminalMixin:
@@ -21,7 +23,7 @@ class TerminalMixin:
             params = {"token": token}
             resp = self.http.get('terminal-access-key', pk=uuid, params=params, use_auth=False)
         except (ResponseError, RequestError) as e:
-            logging.error(e)
+            logger.error(e)
             raise RegisterError(e)
 
         if resp.status_code in (400, 401):
@@ -37,7 +39,7 @@ class TerminalMixin:
                 'terminal-register', data={'name': name}, use_auth=False
             )
         except (RequestError, ResponseError) as e:
-            logging.error(e)
+            logger.error(e)
             raise RegisterError(e)
 
         if resp.status_code == 201:
@@ -81,12 +83,12 @@ class TerminalMixin:
         try:
             resp = self.http.post('terminal-heartbeat', data=data, use_auth=True)
         except (ResponseError, RequestError) as e:
-            logging.debug("Request auth: {}".format(self.http.auth))
-            logging.error(e)
+            logger.debug("Request auth: {}".format(self.http.auth))
+            logger.error(e)
             return False
 
         if resp.status_code == 403:
-            logging.debug("Auth failed")
+            logger.debug("Auth failed")
 
         if resp.status_code == 201:
             return TerminalTask.from_multi_json(resp.json())
@@ -102,7 +104,7 @@ class TerminalMixin:
                     content_type=None, pk=session_id
                 )
             except (ResponseError, RequestError) as e:
-                logging.error(e)
+                logger.error(e)
                 return False
 
             if resp.status_code == 201:
@@ -114,20 +116,20 @@ class TerminalMixin:
         try:
             resp = self.http.get('session-replay', pk=session_id)
         except (RequestError, ResponseError) as e:
-            logging.error(e)
+            logger.error(e)
             return None
 
         if resp.status_code == 200:
             return resp
         else:
-            logging.error("Session replay response code not 200")
+            logger.error("Session replay response code not 200")
             return None
 
     def push_session_command(self, data_set):
         try:
             resp = self.http.post('session-command', data=data_set)
         except (RequestError, ResponseError) as e:
-            logging.error(e)
+            logger.error(e)
             return False
         if resp.status_code == 201:
             return True
@@ -139,7 +141,7 @@ class TerminalMixin:
         try:
             resp = self.http.patch('finish-task', pk=task_id, data=data)
         except (RequestError, ResponseError) as e:
-            logging.error(e)
+            logger.error(e)
             return False
 
         if resp.status_code == 200:
@@ -151,7 +153,7 @@ class TerminalMixin:
         try:
             resp = self.http.get('terminal-config')
         except (RegisterError, ResponseError) as e:
-            logging.error(e)
+            logger.error(e)
             return {}
         if resp.status_code == 200:
             configs = {}

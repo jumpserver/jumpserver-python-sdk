@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
 #
 import datetime
-import logging
 import sys
 import time
 
 from .exception import RegisterError
+from .utils import get_logger
 from .auth import AppAccessKey, AccessKeyAuth, TokenAuth
 from .request import Http
 from .terminal import TerminalMixin
 from .perms import PermsMixin
 from .users import UsersMixin
 from .assets import AssetsMixin
+
+
+logger = get_logger(__file__)
 
 
 class Service(UsersMixin, TerminalMixin, PermsMixin, AssetsMixin):
@@ -31,21 +34,21 @@ class AppService(Service):
         self.access_key = self.access_key_class(self.app)
 
     def initial(self):
-        logging.debug("Initial app service")
+        logger.debug("Initial app service")
         self.load_access_key()
         self.set_auth()
         self.valid_auth()
-        logging.debug("Service http auth: {}".format(self.http.auth))
+        logger.debug("Service http auth: {}".format(self.http.auth))
 
     def load_access_key(self):
-        logging.debug("Load access key")
+        logger.debug("Load access key")
         self.access_key.load()
         if not self.access_key:
-            logging.info("No access key found, register it")
+            logger.info("No access key found, register it")
             self.register_and_save()
 
     def set_auth(self):
-        logging.debug("Set app service auth: {}".format(self.access_key))
+        logger.debug("Set app service auth: {}".format(self.access_key))
         self.auth = self.auth_class(self.access_key)
         self.http.set_auth(self.auth_class(self.access_key))
 
@@ -56,7 +59,7 @@ class AppService(Service):
             if not user:
                 msg = "Connect server error or access key is invalid, " \
                       "remove `./keys/.access_key` run again"
-                logging.error(msg)
+                logger.error(msg)
                 delay += 3
                 time.sleep(3)
             else:
@@ -73,7 +76,7 @@ class AppService(Service):
                 )
                 break
             except RegisterError as e:
-                logging.info(e)
+                logger.info(e)
                 delay += 3
                 time.sleep(3)
                 continue
@@ -82,12 +85,12 @@ class AppService(Service):
         try:
             uuid, token = self.terminal_register(self.app.name)
         except RegisterError as e:
-            logging.error("Failed register terminal %s" % e)
+            logger.error("Failed register terminal %s" % e)
             sys.exit()
 
         self.wait_for_accept(uuid, token)
         if not self.access_key:
-            logging.error("Register error")
+            logger.error("Register error")
             sys.exit()
         self.save_access_key()
 
@@ -107,7 +110,7 @@ class UserService(Service):
         if self.username:
             self.login(self.username, self.password, self.pubkey)
         else:
-            logging.info("You need login first")
+            logger.info("You need login first")
 
     def login(self, username, password=None, pubkey=None):
         user, token = self.authenticate(username, password=password, public_key=pubkey)

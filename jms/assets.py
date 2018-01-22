@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 #
-import logging
 import paramiko
 
 from .exception import ResponseError, RequestError
 from .request import Http
-from .utils import ssh_key_string_to_obj
+from .utils import ssh_key_string_to_obj, get_logger
 from .models import Asset, SystemUser
+
+logger = get_logger(__file__)
 
 
 class AssetsMixin:
@@ -42,7 +43,6 @@ class AssetsMixin:
         except (RequestError, ResponseError):
             return None
         if resp.status_code == 200:
-            print(resp.json())
             asset = SystemUser.from_json(resp.json())
             return asset
         else:
@@ -76,11 +76,11 @@ class AssetsMixin:
             else:
                 password_log_msg = 'None'
 
-            logging.debug('Get system user {} password: {}*** key: {}***'.format(
+            logger.debug('Get system user {} password: {}*** key: {}***'.format(
                 system_user.username, password_log_msg, private_key_log_msg
             ))
             return password, private_key
         else:
-            logging.warning('Get system user %s password or private key failed'
+            logger.warning('Get system user %s password or private key failed'
                             % system_user.username)
             return None, None
