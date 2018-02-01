@@ -82,5 +82,15 @@ class AssetsMixin:
             return password, private_key
         else:
             logger.warning('Get system user %s password or private key failed'
-                            % system_user.username)
+                           % system_user.username)
             return None, None
+
+    def get_token_asset(self, token):
+        """获取token 所含的系统用户的认证信息: 密码, ssh私钥"""
+        try:
+            resp = self.http.post('token-asset',
+                                  pk=token)
+        except (RequestError, ResponseError):
+            return None
+        if resp.status_code == 200:
+            return resp

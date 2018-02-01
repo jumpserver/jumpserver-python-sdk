@@ -20,4 +20,5 @@ API_URL_MAPPING = {
     'system-user': '/api/assets/v1/system-user/%s',
     'user-profile': '/api/users/v1/profile/',
     'terminal-config': '/api/terminal/v1/terminal/config/',
+    'token-asset': '/api/users/v1/connection-token/?token=%s',
 }
