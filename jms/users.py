@@ -49,6 +49,14 @@ class UsersMixin:
             return None
         return User.from_json(resp.json())
 
+    def check_user_with_authorization(self, authorization):
+        try:
+            headers = {"Authorization": authorization}
+            resp = self.http.get('user-profile', headers=headers, use_auth=False)
+        except (ResponseError, ResponseError):
+            return None
+        return User.from_json(resp.json())
+
     def get_profile(self):
         try:
             resp = self.http.get('my-profile', use_auth=True)
@@ -57,3 +65,11 @@ class UsersMixin:
 
         user = User.from_json(resp.json())
         return user
+
+    def get_connection_token_info(self, token):
+        try:
+            params = {"token": token}
+            resp = self.http.get('connection-token', params=params)
+        except (ResponseError, RequestError):
+            return {}
+        return resp.json()
