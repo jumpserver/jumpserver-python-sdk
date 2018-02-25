@@ -57,7 +57,7 @@ class PermsMixin:
         [{'name': 'group1', 'comment': 'x', "assets_granted": ["id": "", "],}, ..]
         """
         try:
-            resp = self.http.get('user-asset-groups', pk=user.id, use_auth=True)
+            resp = self.http.get('user-nodes-assets', pk=user.id, use_auth=True)
         except (ResponseError, RequestError):
             return []
 
