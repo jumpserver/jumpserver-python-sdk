@@ -136,6 +136,31 @@ class TerminalMixin:
         else:
             return False
 
+    def create_session(self, session_data):
+        try:
+            resp = self.http.post('session-list', data=session_data)
+        except (RequestError, ResponseError) as e:
+            logger.error(e)
+            return None
+
+        if resp.status_code == 201:
+            return resp.json()
+        else:
+            return None
+
+    def finish_session(self, session_id):
+        try:
+            data = {'is_finished': True}
+            resp = self.http.patch('session-detail', pk=session_id, data=data)
+        except (ResponseError, RequestError) as e:
+            logger.error(e)
+            return None
+
+        if resp.status_code == 200:
+            return resp.json
+        else:
+            return None
+
     def finish_task(self, task_id):
         data = {"is_finished": True}
         try:

@@ -8,6 +8,8 @@ API_URL_MAPPING = {
     'terminal-access-key': '/api/terminal/v1/terminal/%s/access-key',
     'terminal-heartbeat': '/api/terminal/v1/terminal/status/',
     'session-replay': '/api/terminal/v1/sessions/%s/replay/',
+    'session-list': '/api/terminal/v1/sessions/',
+    'session-detail': '/api/terminal/v1/sessions/%s/',
     'session-command': '/api/terminal/v1/command/',
     'user-auth': '/api/users/v1/auth/',
     'user-assets': '/api/perms/v1/user/%s/assets/',
