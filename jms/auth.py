@@ -118,10 +118,10 @@ class AccessKey(object):
         return self.id == other.id and self.secret == other.secret
 
     def __str__(self):
-        return '{0}:{1}'.format(self.id, self.secret)
+        return '{0}'.format(self.id)
 
     def __repr__(self):
-        return '{0}:{1}'.format(self.id, self.secret)
+        return '{0}'.format(self.id)
 
 
 class AppAccessKey(AccessKey):

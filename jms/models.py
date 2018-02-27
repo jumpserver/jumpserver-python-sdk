@@ -60,6 +60,7 @@ class Asset(Decoder):
     is_active = False
     system_users_join = ''
     comment = ""
+    platform = "Linux"
     _system_users_name_list = None
 
     @classmethod
