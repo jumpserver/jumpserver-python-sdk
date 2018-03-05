@@ -148,9 +148,24 @@ class TerminalMixin:
         else:
             return None
 
-    def finish_session(self, session_id):
+    def finish_session(self, session_data):
         try:
-            data = {'is_finished': True}
+            session_id = session_data["id"]
+            date_end = session_data["date_end"]
+            data = {'is_finished': True, "date_end": date_end}
+            resp = self.http.patch('session-detail', pk=session_id, data=data)
+        except (ResponseError, RequestError) as e:
+            logger.error(e)
+            return None
+
+        if resp.status_code == 200:
+            return resp.json
+        else:
+            return None
+
+    def finish_replay(self, session_id):
+        try:
+            data = {'has_replay': True}
             resp = self.http.patch('session-detail', pk=session_id, data=data)
         except (ResponseError, RequestError) as e:
             logger.error(e)
