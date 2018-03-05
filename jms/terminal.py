@@ -172,9 +172,9 @@ class TerminalMixin:
             return None
 
         if resp.status_code == 200:
-            return resp.json
+            return True
         else:
-            return None
+            return False
 
     def finish_task(self, task_id):
         data = {"is_finished": True}
