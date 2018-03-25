@@ -1,6 +1,10 @@
 #! coding: utf-8
 
 import datetime
+import random
+from hashlib import md5
+
+import os
 
 
 class Decoder:
@@ -61,6 +65,7 @@ class Asset(Decoder):
     system_users_join = ''
     comment = ""
     platform = "Linux"
+    domain = ""
     _system_users_name_list = None
 
     @classmethod
@@ -120,9 +125,68 @@ class AssetGroup(Decoder):
         json_dict["assets_granted"] = assets_granted
         return super().from_json(json_dict)
 
+    def __str__(self):
+        return self.name
+
 
 class TerminalTask(Decoder):
     id = ""
     name = ""
     args = ""
     is_finished = False
+
+    def __str__(self):
+        return self.name
+
+
+class Gateway(Decoder):
+    id = ""
+    name = ""
+    ip = ""
+    port = 0
+    protocol = ""
+    username = ""
+    is_active = True
+    password = ""
+    private_key = ""
+    key_dir = None
+
+    def __str__(self):
+        return self.name
+
+    def set_key_dir(self, key_dir):
+        self.key_dir = key_dir
+
+    @property
+    def private_key_file(self):
+        if not self.key_dir:
+            self.key_dir = '.'
+
+        if not self.private_key:
+            return None
+        key_name = '.' + md5(self.private_key.encode('utf-8')).hexdigest()
+        key_path = os.path.join(self.key_dir, key_name)
+        if not os.path.exists(key_path):
+            with open(key_path, 'w') as f:
+                f.write(self.private_key)
+            os.chmod(key_path, 0o400)
+        return key_path
+
+
+class Domain(Decoder):
+    id = ""
+    name = ""
+    gateways = None
+
+    @classmethod
+    def from_json(cls, json_dict):
+        data = super().from_json(json_dict)
+        gateways = Gateway.from_multi_json(json_dict["gateways"])
+        data.gateways = gateways
+        return data
+
+    def random_gateway(self):
+        return random.choice(self.gateways)
+
+    def __str__(self):
+        return self.name

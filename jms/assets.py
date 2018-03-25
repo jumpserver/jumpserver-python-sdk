@@ -5,7 +5,7 @@ import paramiko
 from .exception import ResponseError, RequestError
 from .request import Http
 from .utils import ssh_key_string_to_obj, get_logger
-from .models import Asset, SystemUser
+from .models import Asset, SystemUser, Domain
 
 logger = get_logger(__file__)
 
@@ -94,3 +94,13 @@ class AssetsMixin:
             return None
         if resp.status_code == 200:
             return resp
+
+    def get_domain_detail_with_gateway(self, domain_id):
+        try:
+            resp = self.http.get('domain-detail', params={"gateway": "1"}, pk=domain_id)
+            print(resp.json())
+        except (RequestError, ResponseError):
+            return None
+        if resp.status_code == 200:
+            return Domain.from_json(resp.json())
+
