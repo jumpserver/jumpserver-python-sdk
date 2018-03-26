@@ -98,7 +98,6 @@ class AssetsMixin:
     def get_domain_detail_with_gateway(self, domain_id):
         try:
             resp = self.http.get('domain-detail', params={"gateway": "1"}, pk=domain_id)
-            print(resp.json())
         except (RequestError, ResponseError):
             return None
         if resp.status_code == 200:
