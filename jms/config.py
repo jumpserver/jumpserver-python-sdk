@@ -11,7 +11,7 @@ API_URL_MAPPING = {
     'send-command-log': '/api/audits/v1/command-log/',
     'send-record-log': '/api/audits/v1/record-log/',
     'user-auth': '/api/users/v1/auth/',
-    'my-assets': '/api/perms/v1/user/my/assets/',
+    'my-assets': '/api/perms/v1/user/assets/',
     'my-asset-groups': '/api/perms/v1/user/my/asset-groups/',
     'my-asset-groups-assets': '/api/perms/v1/user/my/asset-groups-assets/',
     'assets-of-group': '/api/perms/v1/user/my/asset-group/%s/assets/',
