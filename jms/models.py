@@ -185,7 +185,10 @@ class Domain(Decoder):
         data.gateways = gateways
         return data
 
-    def random_gateway(self):
+    def has_ssh_gateway(self):
+        return bool([g for g in self.gateways if g.protocol == 'ssh'])
+
+    def random_ssh_gateway(self):
         return random.choice([g for g in self.gateways if g.protocol == 'ssh'])
 
     def __str__(self):
