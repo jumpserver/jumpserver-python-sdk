@@ -73,3 +73,14 @@ class UsersMixin:
         except (ResponseError, RequestError):
             return {}
         return resp.json()
+
+    def get_user_profile(self, user_id):
+        try:
+            resp = self.http.get('user-user', pk=user_id)
+        except (RequestError, RequestError):
+            return None
+        if resp.status_code == 200:
+            user = User.from_json(resp.json())
+            return user
+        else:
+            return None
