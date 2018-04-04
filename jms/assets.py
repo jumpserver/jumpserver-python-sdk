@@ -93,7 +93,7 @@ class AssetsMixin:
         except (RequestError, ResponseError):
             return None
         if resp.status_code == 200:
-            return resp
+            return resp.json()
 
     def get_domain_detail_with_gateway(self, domain_id):
         try:
