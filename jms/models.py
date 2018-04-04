@@ -19,7 +19,9 @@ class Decoder:
         for k, v in json_dict.items():
             if isinstance(getattr(self, k, None), datetime.datetime) and v:
                 try:
-                    v = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S")
+                    if len(v.strip().split()) == 2:
+                        v += " +0000"
+                    v = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S %z")
                 except TypeError:
                     pass
             if hasattr(self, k):
