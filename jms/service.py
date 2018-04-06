@@ -12,12 +12,13 @@ from .terminal import TerminalMixin
 from .perms import PermsMixin
 from .users import UsersMixin
 from .assets import AssetsMixin
+from .audits import AuditsMixin
 
 
 logger = get_logger(__file__)
 
 
-class Service(UsersMixin, TerminalMixin, PermsMixin, AssetsMixin):
+class Service(UsersMixin, TerminalMixin, PermsMixin, AssetsMixin, AuditsMixin):
     def __init__(self, endpoint, auth=None):
         self.endpoint = endpoint
         self.auth = auth

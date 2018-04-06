@@ -26,4 +26,5 @@ API_URL_MAPPING = {
     'terminal-config': '/api/terminal/v1/terminal/config/',
     'token-asset': '/api/users/v1/connection-token/?token=%s',
     'domain-detail': '/api/assets/v1/domain/%s/',
+    'ftp-log-list': '/api/audits/v1/ftp-log/',
 }
