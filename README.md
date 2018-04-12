@@ -139,10 +139,10 @@ In [2]: username = 'ibuler'
 
 In [3]: password = 'redhat'
 
-In [4]: user_service = UserService(app_name='coco', endpoint='http://localhost:8080')
+In [4]: user_service = UserService(endpoint='http://localhost:8080')
 
-In [5]: user, token = user_service.login(username=username, password=password, 
-                public_key=None, login_type='ST', remote_addr='2.2.2.2')
+In [5]: user, token = user_service.login({'username':username, 'password':password, 
+                'public_key':None, 'login_type':'ST', 'remote_addr':'2.2.2.2'})
                 
                 
 Out[10]: user
