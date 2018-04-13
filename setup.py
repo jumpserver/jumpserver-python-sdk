@@ -29,7 +29,7 @@ setup(
     author='Jumpserver team',
     author_email='ibuler@qq.com',
     install_requires=[
-        'paramiko==2.4.0s',
+        'paramiko==2.4.0',
         'requests>=2.11.1',
         'cachetools>=2.0.0',
         'pytz==2017.2',
