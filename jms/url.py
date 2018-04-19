@@ -12,6 +12,7 @@ API_URL_MAPPING = {
     'session-detail': '/api/terminal/v1/sessions/%s/',
     'session-command': '/api/terminal/v1/command/',
     'user-auth': '/api/users/v1/auth/',
+    'user-otp-auth': '/api/users/v1/otp/auth/',
     'user-assets': '/api/perms/v1/user/%s/assets/',
     'user-asset-groups': '/api/perms/v1/user/%s/nodes-assets/',
     'user-nodes-assets': '/api/perms/v1/user/%s/nodes-assets/',
