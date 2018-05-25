@@ -1,5 +1,5 @@
-paramiko>=2.1.1
-requests>=2.11.1
-cachetools>=2.0.0
-pytz==2017.2
-pyte==0.5.2
+paramiko==2.4.0
+requests==2.18.4
+cachetools==2.0.1
+pytz==2018.3
+pyte==0.8.0
