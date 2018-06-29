@@ -62,6 +62,7 @@ class Asset(Decoder):
     id = 0
     hostname = ""
     ip = ""
+    protocol = ""
     port = 22
     system_users_granted = []
     is_active = False
