@@ -1,10 +1,11 @@
 #! coding: utf-8
 
+import os
 import datetime
 import random
 from hashlib import md5
 
-import os
+from .utils import ssh_key_string_to_obj
 
 
 class Decoder:
@@ -61,6 +62,7 @@ class Asset(Decoder):
     id = 0
     hostname = ""
     ip = ""
+    protocol = ""
     port = 22
     system_users_granted = []
     is_active = False
@@ -106,6 +108,7 @@ class SystemUser(Decoder):
     password = ""
     priority = 0
     private_key = None
+    login_mode = ""
 
     def __str__(self):
         return self.username
@@ -158,6 +161,14 @@ class Gateway(Decoder):
 
     def set_key_dir(self, key_dir):
         self.key_dir = key_dir
+
+    @property
+    def private_key_obj(self):
+        if self.private_key and self.private_key.find('PRIVATE KEY'):
+            key_obj = ssh_key_string_to_obj(self.private_key, self.password)
+        else:
+            key_obj = None
+        return key_obj
 
     @property
     def private_key_file(self):

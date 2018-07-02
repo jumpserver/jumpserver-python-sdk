@@ -19,6 +19,9 @@ if not version:
 with open('README.md', 'rb') as f:
     readme = f.read().decode('utf-8')
 
+with open('requirements.txt', 'r') as f:
+    requirements = [x.strip() for x in f.readlines()]
+
 setup(
     name='jumpserver-python-sdk',
     version=version,
@@ -27,15 +30,10 @@ setup(
     keywords='jms jumpserver',
     packages=['jms'],
     author='Jumpserver team',
-    author_email='ibuler@qq.com',
-    install_requires=[
-        'paramiko==2.4.0',
-        'requests>=2.11.1',
-        'cachetools>=2.0.0',
-        'pytz==2017.2',
-        'pyte==0.5.2',
-    ],
+    author_email='support@fit2cloud.com',
+    install_requires=requirements,
     include_package_data=True,
+    data_files=[('requirements', ['requirements.txt'])],
     url='http://jumpserver.org',
     classifiers=[
         'Development Status :: 5 - Production/Stable',

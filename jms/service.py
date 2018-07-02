@@ -72,9 +72,8 @@ class AppService(Service):
         delay = 1
         while delay < 3600:
             try:
-                self.access_key.id, self.access_key.secret = self.retrieve_access_key(
-                    uuid, token,
-                )
+                self.access_key.id, self.access_key.secret = \
+                    self.retrieve_access_key(uuid, token)
                 break
             except RegisterError as e:
                 logger.info(e)
