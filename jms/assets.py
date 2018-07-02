@@ -34,17 +34,17 @@ class AssetsMixin:
 
     def get_system_user(self, user_id):
         """
-              获取用户资产
-              :param user_id:
-              :return:
-              """
+        获取系统用户
+        :param user_id:
+        :return:
+        """
         try:
             resp = self.http.get('system-user', pk=user_id)
         except (RequestError, ResponseError):
             return None
         if resp.status_code == 200:
-            asset = SystemUser.from_json(resp.json())
-            return asset
+            system_user = SystemUser.from_json(resp.json())
+            return system_user
         else:
             return None
 
