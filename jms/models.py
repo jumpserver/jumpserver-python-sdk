@@ -62,6 +62,7 @@ class Asset(Decoder):
     id = 0
     hostname = ""
     ip = ""
+    protocol = ""
     port = 22
     system_users_granted = []
     is_active = False
@@ -107,6 +108,7 @@ class SystemUser(Decoder):
     password = ""
     priority = 0
     private_key = None
+    login_mode = ""
 
     def __str__(self):
         return self.username
