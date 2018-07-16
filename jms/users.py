@@ -20,10 +20,11 @@ class UsersMixin:
         else:
             return "Unknown"
 
-    def authenticate_otp(self, seed, otp_code):
+    def authenticate_otp(self, seed, otp_code, login_type='T'):
         data = {
             'seed': seed,
-            'otp_code': otp_code
+            'otp_code': otp_code,
+            'login_type': login_type,
         }
 
         try:
