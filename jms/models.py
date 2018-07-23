@@ -206,3 +206,8 @@ class Domain(Decoder):
 
     def __str__(self):
         return self.name
+
+
+class Org(Decoder):
+    id = ""
+    name = ""

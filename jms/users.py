@@ -49,7 +49,7 @@ class UsersMixin:
         try:
             resp = self.http.post('user-auth', data=data, use_auth=False)
         except (ResponseError, RequestError):
-            return None, None
+            return dict()
 
         if resp.status_code == 200:
             user = User.from_json(resp.json()["user"])

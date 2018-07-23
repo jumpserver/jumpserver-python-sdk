@@ -13,16 +13,30 @@ from .perms import PermsMixin
 from .users import UsersMixin
 from .assets import AssetsMixin
 from .audits import AuditsMixin
+from .orgs import OrgMixin
 
 
 logger = get_logger(__file__)
 
 
-class Service(UsersMixin, TerminalMixin, PermsMixin, AssetsMixin, AuditsMixin):
+class Service(UsersMixin, TerminalMixin, PermsMixin, AssetsMixin,
+              AuditsMixin, OrgMixin):
     def __init__(self, endpoint, auth=None):
         self.endpoint = endpoint
-        self.auth = auth
+        self._auth = auth
         self.http = Http(endpoint, auth=self.auth)
+
+    @property
+    def auth(self):
+        return self._auth
+
+    @auth.setter
+    def auth(self, _auth):
+        self._auth = _auth
+        self.http.set_auth(_auth)
+
+    def change_org(self, org):
+        pass
 
 
 class AppService(Service):
@@ -48,10 +62,13 @@ class AppService(Service):
             logger.info("No access key found, register it")
             self.register_and_save()
 
+    def set_access_key(self, sid, secret):
+        key = self.access_key_class(None, id=sid, secret=secret)
+        self.access_key = key
+
     def set_auth(self):
         logger.debug("Set app service auth: {}".format(self.access_key))
         self.auth = self.auth_class(self.access_key)
-        self.http.set_auth(self.auth_class(self.access_key))
 
     def valid_auth(self):
         delay = 1
@@ -113,9 +130,18 @@ class UserService(Service):
             logger.info("You need login first")
 
     def login(self, username, password=None, pubkey=None):
-        user, token = self.authenticate(username, password=password, public_key=pubkey)
-        if user.is_active and user.date_expired > datetime.datetime.now():
-            self.auth = TokenAuth(token=token)
+        resp = self.authenticate(username, password=password, public_key=pubkey)
+        if not resp:
+            print("Login failed")
+            return
+        user = resp.get("user")
+        token = resp.get("token")
+        seed = resp.get("seed")
+        if not token and seed:
+            print("User enable MFA, you should disable it")
+            return
+        print(token)
+        self.auth = TokenAuth(token=token)
         self.username = username
         self.password = password
         self.pubkey = pubkey

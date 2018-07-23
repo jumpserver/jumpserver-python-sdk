@@ -11,11 +11,6 @@ logger = get_logger(__file__)
 
 
 class AssetsMixin:
-    def __init__(self, endpoint, auth=None):
-        self.endpoint = endpoint
-        self.auth = auth
-        self.http = Http(endpoint, auth=self.auth)
-
     def get_asset(self, asset_id):
         """
         获取用户资产

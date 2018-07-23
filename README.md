@@ -4,101 +4,21 @@
 交互的一些功能
 
 
-### App service
-这是为terminal app 提供的 class
+- Service
+通用RestApi 接口类
 
-- \__init__(self, app_name=None, endpoint=None)
+- AppService
+增加了app注册等
 
-    app_name: app的名称
-    endpoint: Jumpserver api的地址
+- UserService
+用户使用该类
 
-- auth(self, access_key_id=None, access_key_secret=None)
-    对app进行认证, 以后请求jumpserver api会使用这个access key
     
-    access_key_id: 认证使用的id
-    access_key_secret: 认证使用的secret
-    
-- check_auth(self)
-    检查用户access key是否合法, True or False
-
-- terminal_heatbeat()
-    和Jumpserver保持心跳, True or False
-
-- get_system_user_auth_info(self, system_user)
-    返回系统用户的密码和密钥
-    system_user = {
-        "id": 系统用户id,
-        "username": 系统用户的用户名,
-        "name": 系统用户的名称
-    }
-- send_proxy_log(self, data)
-    用户登陆资产,向Jumpserver发送登录信息
-    data = {
-        "username": 用户名,
-        "name": 用户姓名,
-        "hostname": 登陆资产的hostname,
-        "ip": 登录资产的ip地址,
-        "system_user": 系统用户用户名,
-        "login_type": 登录方式['ST', 'WT'] ST: SSHTerminal, WT: WebTerminal
-        "was_failed": 是否成功登陆, 0或1
-        "date_start": 一个时间日期对象, 开始时间
-    }
-        
-    返回成功的信息, 带有id
-
-- finish_proxy_log(self, data)
-    用户登出, 向Jumpserver发送登出信息
-    data = {
-        "date_finished": 一个时间日期对象, 登出的时间,
-        "proxy_log_id": 上个send_proxy_log取到的id,
-    }
-        
-    
-```
-In [1]: from jms import AppService
-
-In [2]: access_key_id = '600f6241-5574-407f-b39a-c616fb2b14eb'
-
-In [3]: access_key_secret = '48496c51-08fd-4eca-8c47-68b18aad72e9'
-
-In [4]: app_service = AppService(app_name='coco', endpoint='http://localhost:8080')
-
-In [5]: app_service.auth(access_key_id=access_key_id, access_key_secret=access_key_secret)
-
-In [6]: app_service.check_auth()
-Out[6]: True
-
-In [7]: app_service.terminal_heatbeat()
-Out[7]: True
-
-In [9]: system_user = {'id': 10, 'username': 'guang'}
-
-In [10]: app_service.get_system_user_auth_info(system_user)
-Out[10]: (u'sagittis', None)
-                 
-In [14]: app_service.send_proxy_log(data)
-Out[14]:
-DotMap([(u'username', u'admin'),
-        (u'date_start', u'2012-12-12T12:12:11+08:00'),
-        (u'system_user', u'web'),
-        (u'name', u'admin'),
-        (u'date_finished', None),
-        (u'ip', u'192.168.1.2'),
-        (u'hostname', u'test'),
-        (u'command_length', 0),
-        (u'terminal', u'luna'),
-        (u'time', u''),
-        (u'was_failed', False),
-        (u'login_type', u'ST'),
-        (u'is_finished', False),
-        (u'log_file', None),
-        (u'id', 7)])
-
-```
-
 
 ### User service
 User service封装了用户调用的api, 如用户登录,获取授权的资产等
+
+
 
 - login(self, username=None, password=None,
         public_key=None, login_type='', remote_addr=''):
