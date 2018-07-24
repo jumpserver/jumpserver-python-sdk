@@ -4,7 +4,7 @@
 
 
 API_URL_MAPPING = {
-    'terminal-register': '/api/v1/terminal/terminal/',
+    'terminal-register': '/api/v1/terminal/',
     'terminal-access-key': '/api/v1/terminal/terminal/%s/access-key',
     'terminal-heartbeat': '/api/v1/terminal/terminal/status/',
     'session-replay': '/api/v1/terminal/sessions/%s/replay/',
@@ -21,6 +21,7 @@ API_URL_MAPPING = {
     'validate-user-asset-permission': '/api/v1/perms/asset-permission/user/validate/',
     'finish-task': '/api/v1/terminal/tasks/%s/',
     'asset': '/api/v1/assets/assets/%s/',
+    'asset-list': '/api/v1/assets/assets/',
     'system-user': '/api/v1/assets/system-user/%s',
     'user-profile': '/api/v1/users/profile/',
     'user-user': '/api/v1/users/users/%s/',

@@ -38,6 +38,9 @@ class Service(UsersMixin, TerminalMixin, PermsMixin, AssetsMixin,
     def change_org(self, org):
         pass
 
+    def change_to_root_org(self):
+        self.http.set_header('X-JMS-ORG', 'ROOT')
+
 
 class AppService(Service):
     access_key_class = AppAccessKey
@@ -53,6 +56,7 @@ class AppService(Service):
         self.load_access_key()
         self.set_auth()
         self.valid_auth()
+        self.change_to_root_org()
         logger.debug("Service http auth: {}".format(self.http.auth))
 
     def load_access_key(self):
@@ -140,7 +144,6 @@ class UserService(Service):
         if not token and seed:
             print("User enable MFA, you should disable it")
             return
-        print(token)
         self.auth = TokenAuth(token=token)
         self.username = username
         self.password = password
