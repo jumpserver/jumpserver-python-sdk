@@ -4,7 +4,7 @@
 
 
 API_URL_MAPPING = {
-    'terminal-register': '/api/v1/terminal/',
+    'terminal-register': '/api/v1/terminal/terminal/',
     'terminal-access-key': '/api/v1/terminal/terminal/%s/access-key',
     'terminal-heartbeat': '/api/v1/terminal/terminal/status/',
     'session-replay': '/api/v1/terminal/sessions/%s/replay/',
@@ -29,5 +29,5 @@ API_URL_MAPPING = {
     'token-asset': '/api/v1/users/connection-token/?token=%s',
     'domain-detail': '/api/v1/assets/domain/%s/',
     'ftp-log-list': '/api/v1/audits/ftp-log/',
-    'org-list': '/api/v1/orgs/',
+    'org-list': '/api/v1/orgs/orgs/',
 }
