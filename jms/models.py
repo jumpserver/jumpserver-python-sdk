@@ -75,8 +75,11 @@ class Asset(Decoder):
 
     @classmethod
     def from_json(cls, json_dict):
+        print(type(json_dict))
         try:
-            system_users_granted = SystemUser.from_multi_json(json_dict["system_users_granted"])
+            system_users_granted = SystemUser.from_multi_json(
+                json_dict.get("system_users_granted") or []
+            )
             json_dict["system_users_granted"] = system_users_granted
         except KeyError:
             pass
@@ -212,3 +215,6 @@ class Domain(Decoder):
 class Org(Decoder):
     id = ""
     name = ""
+
+    def __str__(self):
+        return self.name

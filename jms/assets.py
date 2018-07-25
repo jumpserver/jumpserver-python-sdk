@@ -3,7 +3,6 @@
 import paramiko
 
 from .exception import ResponseError, RequestError
-from .request import Http
 from .utils import ssh_key_string_to_obj, get_logger
 from .models import Asset, SystemUser, Domain
 
@@ -11,6 +10,19 @@ logger = get_logger(__file__)
 
 
 class AssetsMixin:
+    def get_assets(self):
+        try:
+            resp = self.http.get('asset-list')
+        except (RequestError, ResponseError):
+            return None
+        if resp.status_code == 200:
+            print(resp.json())
+            print(type(resp.json()))
+            assets = Asset.from_multi_json(resp.json())
+            return assets
+        else:
+            return None
+
     def get_asset(self, asset_id):
         """
         获取用户资产
@@ -83,8 +95,7 @@ class AssetsMixin:
     def get_token_asset(self, token):
         """获取token 所含的系统用户的认证信息: 密码, ssh私钥"""
         try:
-            resp = self.http.get('token-asset',
-                                  pk=token)
+            resp = self.http.get('token-asset', pk=token)
         except (RequestError, ResponseError):
             return None
         if resp.status_code == 200:
