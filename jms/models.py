@@ -70,6 +70,7 @@ class Asset(Decoder):
     comment = ""
     platform = "Linux"
     domain = ""
+    org_id = ""
     _system_users_name_list = None
 
     @classmethod
