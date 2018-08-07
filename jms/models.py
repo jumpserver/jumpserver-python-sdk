@@ -71,11 +71,11 @@ class Asset(Decoder):
     platform = "Linux"
     domain = ""
     org_id = ""
+    org_name = ""
     _system_users_name_list = None
 
     @classmethod
     def from_json(cls, json_dict):
-        print(type(json_dict))
         try:
             system_users_granted = SystemUser.from_multi_json(
                 json_dict.get("system_users_granted") or []
