@@ -46,10 +46,10 @@ class AppService(Service):
     access_key_class = AppAccessKey
     auth_class = AccessKeyAuth
 
-    def __init__(self, app):
-        super().__init__(app.config['CORE_HOST'])
-        self.app = app
-        self.access_key = self.access_key_class(self.app)
+    def __init__(self, config):
+        super().__init__(config['CORE_HOST'])
+        self.config = config
+        self.access_key = self.access_key_class(config['ACCESS_KEY_FILE'])
 
     def initial(self):
         logger.debug("Initial app service")
@@ -104,7 +104,7 @@ class AppService(Service):
 
     def register_and_save(self):
         try:
-            uuid, token = self.terminal_register(self.app.name)
+            uuid, token = self.terminal_register(self.config['NAME'])
         except RegisterError as e:
             logger.error("Failed register terminal %s" % e)
             sys.exit()

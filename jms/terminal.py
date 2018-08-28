@@ -71,13 +71,21 @@ class TerminalMixin:
         }
         """
         p = psutil.Process(os.getpid())
+        cpu_used = p.cpu_percent(interval=1.0)
+        memory_used = int(p.memory_info().rss / 1024 / 1024)
+        connections = len(p.connections())
+        threads = p.num_threads()
+        session_online = len([s for s in sessions if not s["is_finished"]])
+        logger.info("CPU: {} MEM: {}M CONN: {} THRE: {} SESS: {}".format(
+            cpu_used, memory_used, connections, threads, session_online
+        ))
         data = {
-            "cpu_used": p.cpu_percent(interval=1.0),
-            "memory_used": p.memory_info().rss,
-            "connections": len(p.connections()),
-            "threads": p.num_threads(),
+            "cpu_used": cpu_used,
+            "memory_used": memory_used,
+            "connections": connections,
+            "threads": threads,
             "boot_time": p.create_time(),
-            "session_online": len([s for s in sessions if not s["is_finished"]]),
+            "session_online": session_online,
             "sessions": sessions,
         }
         try:
