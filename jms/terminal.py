@@ -76,7 +76,7 @@ class TerminalMixin:
         connections = len(p.connections())
         threads = p.num_threads()
         session_online = len([s for s in sessions if not s["is_finished"]])
-        logger.info("CPU: {} MEM: {}M CONN: {} THRE: {} SESS: {}".format(
+        logger.debug("CPU: {} MEM: {}M CONN: {} THRE: {} SESS: {}".format(
             cpu_used, memory_used, connections, threads, session_online
         ))
         data = {
