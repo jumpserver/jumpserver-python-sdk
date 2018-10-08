@@ -4,7 +4,7 @@ import paramiko
 
 from .exception import ResponseError, RequestError
 from .utils import ssh_key_string_to_obj, get_logger
-from .models import Asset, SystemUser, Domain
+from .models import Asset, SystemUser, Domain, CommandFilterRule
 
 logger = get_logger(__file__)
 
@@ -16,8 +16,6 @@ class AssetsMixin:
         except (RequestError, ResponseError):
             return None
         if resp.status_code == 200:
-            print(resp.json())
-            print(type(resp.json()))
             assets = Asset.from_multi_json(resp.json())
             return assets
         else:
@@ -52,6 +50,18 @@ class AssetsMixin:
         if resp.status_code == 200:
             system_user = SystemUser.from_json(resp.json())
             return system_user
+        else:
+            return None
+
+    def get_system_user_cmd_filter_rules(self, system_user_id):
+        try:
+            resp = self.http.get('system-user-cmd-filter-rule-list', pk=system_user_id)
+        except (RequestError, RequestError):
+            return None
+
+        if resp.status_code == 200:
+            rules = CommandFilterRule.from_multi_json(resp.json())
+            return rules
         else:
             return None
 
