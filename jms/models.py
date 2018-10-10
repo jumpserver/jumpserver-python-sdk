@@ -252,7 +252,7 @@ class CommandFilterRule(Decoder):
         if not matched:
             return self.UNKNOWN, ''
         if self.action['value'] == 'deny':
-            return self.DENY, 'command `{}` is forbidden'.format(matched.group())
+            return self.DENY, 'command `{}` is forbidden .......'.format(matched.group())
         elif self.action['value'] == 'accept':
             return self.ACCEPT, ''
         else:
