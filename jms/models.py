@@ -228,7 +228,7 @@ class CommandFilterRule(Decoder):
     action = {}
     __pattern = None
 
-    ACCEPT, DENY, WARNING, UNKNOWN = range(4)
+    DENY, ALLOW, UNKNOWN = range(3)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -248,12 +248,13 @@ class CommandFilterRule(Decoder):
         return self.__pattern
 
     def match(self, data):
-        matched = self._pattern.match(data)
-        if not matched:
+        found = self._pattern.search(data)
+        if not found:
             return self.UNKNOWN, ''
-        if self.action['value'] == 'deny':
-            return self.DENY, 'command `{}` is forbidden .......'.format(matched.group())
-        elif self.action['value'] == 'accept':
-            return self.ACCEPT, ''
+
+        if self.action['value'] == self.ALLOW:
+            return self.ALLOW, found.group()
+        elif self.action['value'] == self.DENY:
+            return self.DENY, found.group()
         else:
-            return self.UNKNOWN, ''
+            return False, ''
