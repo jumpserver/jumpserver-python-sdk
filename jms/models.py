@@ -4,6 +4,7 @@ import os
 import datetime
 import random
 from hashlib import md5
+import re
 
 from .utils import ssh_key_string_to_obj
 
@@ -218,3 +219,42 @@ class Org(Decoder):
 
     def __str__(self):
         return self.name
+
+
+class CommandFilterRule(Decoder):
+    type = {}
+    priority = 100
+    content = ""
+    action = {}
+    __pattern = None
+
+    DENY, ALLOW, UNKNOWN = range(3)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @property
+    def _pattern(self):
+        if self.__pattern:
+            return self.__pattern
+        if self.type['value'] == 'command':
+            regex = []
+            for cmd in self.content.split('\r\n'):
+                cmd = cmd.replace(' ', '\s+')
+                regex.append(r'\b{0}\b'.format(cmd))
+            self.__pattern = re.compile(r'{}'.format('|'.join(regex)))
+        else:
+            self.__pattern = re.compile(r'{0}'.format(self.content))
+        return self.__pattern
+
+    def match(self, data):
+        found = self._pattern.search(data)
+        if not found:
+            return self.UNKNOWN, ''
+
+        if self.action['value'] == self.ALLOW:
+            return self.ALLOW, found.group()
+        elif self.action['value'] == self.DENY:
+            return self.DENY, found.group()
+        else:
+            return False, ''

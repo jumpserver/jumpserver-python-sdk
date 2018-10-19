@@ -30,4 +30,5 @@ API_URL_MAPPING = {
     'domain-detail': '/api/assets/v1/domain/%s/',
     'ftp-log-list': '/api/audits/v1/ftp-log/',
     'org-list': '/api/orgs/v1/orgs/',
+    'system-user-cmd-filter-rule-list': '/api/assets/v1/system-user/%s/cmd-filter-rules/',
 }

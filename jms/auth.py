@@ -127,30 +127,22 @@ class AccessKey(object):
 class AppAccessKey(AccessKey):
     """使用Access key来认证"""
 
-    def __init__(self, app, id=None, secret=None):
+    def __init__(self, key_file=None, value=None, id=None, secret=None):
         super().__init__(id=id, secret=secret)
-        self.app = app
+        self._key_file = key_file
+        self.key_env = 'COCO_ACCESS_KEY'
+        self.key_value = value
+        self.sep = ":"
+        self.silent = False
 
-    @property
-    def _key_env(self):
-        return self.app.config['ACCESS_KEY_ENV']
+    def load_from_conf_env(self):
+        super().load_from_env(self.key_env, sep=self.sep, silent=self.silent)
 
-    @property
-    def _key_val(self):
-        return self.app.config['ACCESS_KEY']
+    def load_from_conf_val(self):
+        super().load_from_val(self.key_value, sep=self.sep, silent=self.silent)
 
-    @property
-    def _key_file(self):
-        return self.app.config['ACCESS_KEY_FILE']
-
-    def load_from_conf_env(self, sep=':', silent=False):
-        super().load_from_env(self._key_env, sep=sep, silent=silent)
-
-    def load_from_conf_val(self, sep=':', silent=False):
-        super().load_from_val(self._key_val, sep=sep, silent=silent)
-
-    def load_from_conf_file(self, sep=':', silent=False):
-        super().load_from_f(self._key_file, sep=sep, silent=silent)
+    def load_from_conf_file(self):
+        super().load_from_f(self._key_file, sep=self.sep, silent=self.silent)
 
     def load(self, **kwargs):
         """Should return access_key_id, access_key_secret"""
@@ -159,7 +151,7 @@ class AppAccessKey(AccessKey):
                        self.load_from_conf_file]:
             try:
                 return method(**kwargs)
-            except LoadAccessKeyError:
+            except LoadAccessKeyError as e:
                 continue
         return None
 
