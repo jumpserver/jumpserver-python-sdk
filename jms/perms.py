@@ -74,6 +74,24 @@ class PermsMixin:
         else:
             return [], 0
 
+    def get_search_user_granted_assets(self, user, value):
+        """
+        通过(hostname, ip, comment)查询用户授权资产
+        :return:
+        """
+        params = {'search': value}
+        try:
+            resp = self.http.get('user-assets', pk=user.id, params=params)
+        except (RequestError, ResponseError) as e:
+            logger.error("{}".format(e))
+            return [], 0
+
+        if resp.status_code == 200:
+            assets = Asset.from_multi_json(resp.json())
+            return assets
+        else:
+            return [], 0
+
     def get_user_asset_groups(self, user):
         """获取用户授权的资产组列表
         [{'name': 'group1', 'comment': 'x', "assets_granted": ["id": "", "],}, ..]
