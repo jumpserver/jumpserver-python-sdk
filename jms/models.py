@@ -125,6 +125,7 @@ class SystemUser(Decoder):
 class AssetGroup(Decoder):
     id = 0
     name = ""
+    key = ""
     assets_amount = 0
     comment = ""
     assets_granted = []
