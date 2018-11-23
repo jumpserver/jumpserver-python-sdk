@@ -84,7 +84,7 @@ class PermsMixin:
         """
         params = {'search': value}
         try:
-            resp = self.http.get('user-assets', pk=user.id, user_auth=True, params=params)
+            resp = self.http.get('user-assets', pk=user.id, use_auth=True, params=params)
         except (RequestError, ResponseError) as e:
             logger.error("{}".format(e))
             return []
