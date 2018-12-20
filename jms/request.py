@@ -89,7 +89,7 @@ class Http(object):
             path = '/'
 
         headers = kwargs.get('headers', {})
-        if self.default_headers and headers:
+        if self.default_headers:
             headers.update(self.default_headers)
         kwargs['headers'] = headers
         url = self.endpoint.rstrip('/') + path
