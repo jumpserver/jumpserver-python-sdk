@@ -19,7 +19,7 @@ logger = get_logger(__file__)
 
 
 class Service(UsersMixin, TerminalMixin, PermsMixin, AssetsMixin,
-              AuditsMixin, OrgMixin):
+              AuditsMixin, OrgMixin, object):
     def __init__(self, endpoint, auth=None):
         self.endpoint = endpoint
         self._auth = auth
@@ -46,7 +46,7 @@ class AppService(Service):
     auth_class = AccessKeyAuth
 
     def __init__(self, config):
-        super().__init__(config['CORE_HOST'])
+        super(AppService, self).__init__(config['CORE_HOST'])
         self.config = config
         self.access_key = self.access_key_class(config['ACCESS_KEY_FILE'])
 
@@ -109,7 +109,7 @@ class AppService(Service):
 class UserService(Service):
 
     def __init__(self, endpoint):
-        super().__init__(endpoint)
+        super(UserService, self).__init__(endpoint)
         self.username = ""
         self.password = ""
         self.pubkey = ""

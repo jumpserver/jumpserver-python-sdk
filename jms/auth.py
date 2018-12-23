@@ -128,7 +128,7 @@ class AppAccessKey(AccessKey):
     """使用Access key来认证"""
 
     def __init__(self, key_file=None, value=None, id=None, secret=None):
-        super().__init__(id=id, secret=secret)
+        super(AppAccessKey, self).__init__(id=id, secret=secret)
         self._key_file = key_file
         self.key_env = 'COCO_ACCESS_KEY'
         self.key_value = value
@@ -136,13 +136,13 @@ class AppAccessKey(AccessKey):
         self.silent = False
 
     def load_from_conf_env(self):
-        super().load_from_env(self.key_env, sep=self.sep, silent=self.silent)
+        super(AppAccessKey, self).load_from_env(self.key_env, sep=self.sep, silent=self.silent)
 
     def load_from_conf_val(self):
-        super().load_from_val(self.key_value, sep=self.sep, silent=self.silent)
+        super(AppAccessKey, self).load_from_val(self.key_value, sep=self.sep, silent=self.silent)
 
     def load_from_conf_file(self):
-        super().load_from_f(self._key_file, sep=self.sep, silent=self.silent)
+        super(AppAccessKey, self).load_from_f(self._key_file, sep=self.sep, silent=self.silent)
 
     def load(self, **kwargs):
         """Should return access_key_id, access_key_secret"""
@@ -156,4 +156,4 @@ class AppAccessKey(AccessKey):
         return None
 
     def save_to_file(self):
-        return super().save_to_f(self._key_file)
+        return super(AppAccessKey, self).save_to_f(self._key_file)
