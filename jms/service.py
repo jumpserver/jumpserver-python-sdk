@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 #
-import datetime
 import sys
 import time
 
@@ -89,27 +88,15 @@ class AppService(Service):
         if delay >= 10:
             sys.exit()
 
-    def wait_for_accept(self, uuid, token):
-        delay = 1
-        while delay < 3600:
-            try:
-                self.access_key.id, self.access_key.secret = \
-                    self.retrieve_access_key(uuid, token)
-                break
-            except RegisterError as e:
-                logger.info(e)
-                delay += 3
-                time.sleep(3)
-                continue
-
     def register_and_save(self):
-        try:
-            uuid, token = self.terminal_register(self.config['NAME'])
-        except RegisterError as e:
-            logger.error("Failed register terminal %s" % e)
+        terminal = self.register_terminal_v2(
+            self.config['NAME'], self.config['BOOTSTRAP_TOKEN']
+        )
+        if not terminal:
+            logger.error("Failed register terminal")
             sys.exit()
-
-        self.wait_for_accept(uuid, token)
+        ak = terminal.service_account.access_key
+        self.access_key.id, self.access_key.secret = ak.id, ak.secret
         if not self.access_key:
             logger.error("Register error")
             sys.exit()

@@ -5,6 +5,10 @@ from .exception import ResponseError, RequestError
 from .models import User
 from .request import Http
 
+from .utils import get_logger
+
+logger = get_logger(__file__)
+
 
 class UsersMixin:
     def __init__(self, endpoint, auth=None):
@@ -105,5 +109,22 @@ class UsersMixin:
             user = User.from_json(resp.json())
             return user
         else:
-            print("Get user profile failed: {}".format(e))
+            print("Get user profile failed: {}".format(resp.content.decode()))
             return None
+
+    def create_service_account(self, name, bootstrap_token):
+        data = {"name": name}
+        headers = {'Authorization': "BootstrapToken {}".format(bootstrap_token)}
+        try:
+            resp = self.http.post('service-account-list', data=data,
+                                  use_auth=False, headers=headers)
+        except (ResponseError, RequestError) as e:
+            print("Service account create failed 1: {}".format(e))
+            return None
+        if resp.status_code == 201:
+            user = User.from_json(resp.json())
+            return user
+        else:
+            print("Service account create failed 2: {}".format(resp.content.decode()))
+            return None
+

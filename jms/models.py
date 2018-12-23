@@ -47,6 +47,7 @@ class User(Decoder):
     wechat = ""
     phone = ""
     comment = ""
+    access_key = ""
     date_expired = datetime.datetime.now()
 
     def __bool__(self):
@@ -125,6 +126,7 @@ class SystemUser(Decoder):
 class AssetGroup(Decoder):
     id = 0
     name = ""
+    key = ""
     assets_amount = 0
     comment = ""
     assets_granted = []
@@ -258,3 +260,38 @@ class CommandFilterRule(Decoder):
             return self.DENY, found.group()
         else:
             return False, ''
+
+
+class AccessKey(Decoder):
+    id = ""
+    secret = ""
+
+
+class ServiceAccount(Decoder):
+    name = ""
+    access_key = None
+
+    @classmethod
+    def from_json(cls, json_dict):
+        data = super().from_json(json_dict)
+        access_key = AccessKey.from_json(json_dict.get("access_key", {}))
+        data.access_key = access_key
+        return data
+
+
+class Terminal(Decoder):
+    id = ""
+    name = ""
+    remote_addr = ""
+    comment = ""
+
+
+class TerminalRegistration(Terminal):
+    service_account = None
+
+    @classmethod
+    def from_json(cls, json_dict):
+        data = super().from_json(json_dict)
+        service_account = ServiceAccount.from_json(json_dict.get("service_account", {}))
+        data.service_account = service_account
+        return data
