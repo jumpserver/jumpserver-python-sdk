@@ -3,18 +3,23 @@
 import paramiko
 
 from .exception import ResponseError, RequestError
-from .request import Http
 from .utils import ssh_key_string_to_obj, get_logger
-from .models import Asset, SystemUser, Domain
+from .models import Asset, SystemUser, Domain, CommandFilterRule
 
 logger = get_logger(__file__)
 
 
 class AssetsMixin:
-    def __init__(self, endpoint, auth=None):
-        self.endpoint = endpoint
-        self.auth = auth
-        self.http = Http(endpoint, auth=self.auth)
+    def get_assets(self):
+        try:
+            resp = self.http.get('asset-list')
+        except (RequestError, ResponseError):
+            return None
+        if resp.status_code == 200:
+            assets = Asset.from_multi_json(resp.json())
+            return assets
+        else:
+            return None
 
     def get_asset(self, asset_id):
         """
@@ -45,6 +50,18 @@ class AssetsMixin:
         if resp.status_code == 200:
             system_user = SystemUser.from_json(resp.json())
             return system_user
+        else:
+            return None
+
+    def get_system_user_cmd_filter_rules(self, system_user_id):
+        try:
+            resp = self.http.get('system-user-cmd-filter-rule-list', pk=system_user_id)
+        except (RequestError, RequestError):
+            return None
+
+        if resp.status_code == 200:
+            rules = CommandFilterRule.from_multi_json(resp.json())
+            return rules
         else:
             return None
 
@@ -88,8 +105,7 @@ class AssetsMixin:
     def get_token_asset(self, token):
         """获取token 所含的系统用户的认证信息: 密码, ssh私钥"""
         try:
-            resp = self.http.get('token-asset',
-                                  pk=token)
+            resp = self.http.get('token-asset', pk=token)
         except (RequestError, ResponseError):
             return None
         if resp.status_code == 200:

@@ -55,12 +55,16 @@ class HttpRequest(object):
 
 class Http(object):
 
-    def __init__(self, endpoint, auth=None):
+    def __init__(self, endpoint, auth=None, default_headers=None):
         self.auth = auth
         self.endpoint = endpoint
+        self.default_headers = default_headers or {}
 
     def set_auth(self, auth):
         self.auth = auth
+
+    def set_header(self, k, v):
+        self.default_headers[k] = v
 
     @staticmethod
     def clean_result(resp):
@@ -84,6 +88,10 @@ class Http(object):
         else:
             path = '/'
 
+        headers = kwargs.get('headers', {})
+        if self.default_headers:
+            headers.update(self.default_headers)
+        kwargs['headers'] = headers
         url = self.endpoint.rstrip('/') + path
         req = HttpRequest(url, method=method, data=data,
                           params=params, content_type=content_type,

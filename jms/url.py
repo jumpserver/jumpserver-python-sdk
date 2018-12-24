@@ -21,6 +21,7 @@ API_URL_MAPPING = {
     'validate-user-asset-permission': '/api/perms/v1/asset-permission/user/validate/',
     'finish-task': '/api/terminal/v1/tasks/%s/',
     'asset': '/api/assets/v1/assets/%s/',
+    'asset-list': '/api/assets/v1/assets/',
     'system-user': '/api/assets/v1/system-user/%s',
     'user-profile': '/api/users/v1/profile/',
     'user-user': '/api/users/v1/users/%s/',
@@ -28,4 +29,7 @@ API_URL_MAPPING = {
     'token-asset': '/api/users/v1/connection-token/?token=%s',
     'domain-detail': '/api/assets/v1/domain/%s/',
     'ftp-log-list': '/api/audits/v1/ftp-log/',
+    'org-list': '/api/orgs/v1/orgs/',
+    'system-user-cmd-filter-rule-list': '/api/assets/v1/system-user/%s/cmd-filter-rules/',
+    'terminal-registration': '/api/terminal/v2/terminal-registrations/',
 }

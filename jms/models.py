@@ -4,6 +4,7 @@ import os
 import datetime
 import random
 from hashlib import md5
+import re
 
 from .utils import ssh_key_string_to_obj
 
@@ -46,6 +47,7 @@ class User(Decoder):
     wechat = ""
     phone = ""
     comment = ""
+    access_key = ""
     date_expired = datetime.datetime.now()
 
     def __bool__(self):
@@ -70,12 +72,16 @@ class Asset(Decoder):
     comment = ""
     platform = "Linux"
     domain = ""
+    org_id = ""
+    org_name = ""
     _system_users_name_list = None
 
     @classmethod
     def from_json(cls, json_dict):
         try:
-            system_users_granted = SystemUser.from_multi_json(json_dict["system_users_granted"])
+            system_users_granted = SystemUser.from_multi_json(
+                json_dict.get("system_users_granted") or []
+            )
             json_dict["system_users_granted"] = system_users_granted
         except KeyError:
             pass
@@ -120,6 +126,7 @@ class SystemUser(Decoder):
 class AssetGroup(Decoder):
     id = 0
     name = ""
+    key = ""
     assets_amount = 0
     comment = ""
     assets_granted = []
@@ -206,3 +213,85 @@ class Domain(Decoder):
 
     def __str__(self):
         return self.name
+
+
+class Org(Decoder):
+    id = ""
+    name = ""
+
+    def __str__(self):
+        return self.name
+
+
+class CommandFilterRule(Decoder):
+    type = {}
+    priority = 100
+    content = ""
+    action = {}
+    __pattern = None
+
+    DENY, ALLOW, UNKNOWN = range(3)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @property
+    def _pattern(self):
+        if self.__pattern:
+            return self.__pattern
+        if self.type['value'] == 'command':
+            regex = []
+            for cmd in self.content.split('\r\n'):
+                cmd = cmd.replace(' ', '\s+')
+                regex.append(r'\b{0}\b'.format(cmd))
+            self.__pattern = re.compile(r'{}'.format('|'.join(regex)))
+        else:
+            self.__pattern = re.compile(r'{0}'.format(self.content))
+        return self.__pattern
+
+    def match(self, data):
+        found = self._pattern.search(data)
+        if not found:
+            return self.UNKNOWN, ''
+
+        if self.action['value'] == self.ALLOW:
+            return self.ALLOW, found.group()
+        elif self.action['value'] == self.DENY:
+            return self.DENY, found.group()
+        else:
+            return False, ''
+
+
+class AccessKey(Decoder):
+    id = ""
+    secret = ""
+
+
+class ServiceAccount(Decoder):
+    name = ""
+    access_key = None
+
+    @classmethod
+    def from_json(cls, json_dict):
+        data = super().from_json(json_dict)
+        access_key = AccessKey.from_json(json_dict.get("access_key", {}))
+        data.access_key = access_key
+        return data
+
+
+class Terminal(Decoder):
+    id = ""
+    name = ""
+    remote_addr = ""
+    comment = ""
+
+
+class TerminalRegistration(Terminal):
+    service_account = None
+
+    @classmethod
+    def from_json(cls, json_dict):
+        data = super().from_json(json_dict)
+        service_account = ServiceAccount.from_json(json_dict.get("service_account", {}))
+        data.service_account = service_account
+        return data

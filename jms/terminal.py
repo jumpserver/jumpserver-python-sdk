@@ -6,7 +6,7 @@ import psutil
 
 from .utils import get_logger
 from .request import Http
-from .models import TerminalTask
+from .models import TerminalTask, TerminalRegistration
 from .exception import RequestError, ResponseError, RegisterError
 
 logger = get_logger(__file__)
@@ -53,6 +53,29 @@ class TerminalMixin:
             msg = 'unknown: {}'.format(name, resp.json())
             raise RegisterError(msg)
 
+    def register_terminal_v2(self, name, token, comment="Coco"):
+        try:
+            headers = {'Authorization': 'BootstrapToken {}'.format(token)}
+            data = {"name": name, "comment": comment}
+            resp = self.http.post(
+                'terminal-registration', data=data, use_auth=False,
+                headers=headers
+            )
+        except (RequestError, ResponseError) as e:
+            msg = str(e)
+            logger.error(msg)
+            raise RegisterError(msg)
+
+        if resp.status_code == 201:
+            terminal = TerminalRegistration.from_json(resp.json())
+            return terminal
+        else:
+            msg = resp.content.decode()
+            if msg.find("unique"):
+                msg = "The name have been used: {}".format(name)
+            logger.error(msg)
+            return None
+
     def terminal_heartbeat(self, sessions):
         """和Jumpserver维持心跳, 当Terminal断线后,jumpserver可以知晓
 
@@ -71,13 +94,21 @@ class TerminalMixin:
         }
         """
         p = psutil.Process(os.getpid())
+        cpu_used = p.cpu_percent(interval=1.0)
+        memory_used = int(p.memory_info().rss / 1024 / 1024)
+        connections = len(p.connections())
+        threads = p.num_threads()
+        session_online = len([s for s in sessions if not s["is_finished"]])
+        # logger.debug("CPU: {} MEM: {}M CONN: {} THRE: {} SESS: {}".format(
+        #     cpu_used, memory_used, connections, threads, session_online
+        # ))
         data = {
-            "cpu_used": p.cpu_percent(interval=1.0),
-            "memory_used": p.memory_info().rss,
-            "connections": len(p.connections()),
-            "threads": p.num_threads(),
+            "cpu_used": cpu_used,
+            "memory_used": memory_used,
+            "connections": connections,
+            "threads": threads,
             "boot_time": p.create_time(),
-            "session_online": len([s for s in sessions if not s["is_finished"]]),
+            "session_online": session_online,
             "sessions": sessions,
         }
         try:
