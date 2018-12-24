@@ -88,9 +88,10 @@ class Http(object):
         else:
             path = '/'
 
-        headers = kwargs.get('headers', {})
-        if self.default_headers:
-            headers.update(self.default_headers)
+        request_headers = kwargs.get('headers', {})
+        default_headers = self.default_headers or {}
+        headers = {k: v for k, v in default_headers.items()}
+        headers.update(request_headers)
         kwargs['headers'] = headers
         url = self.endpoint.rstrip('/') + path
         req = HttpRequest(url, method=method, data=data,
