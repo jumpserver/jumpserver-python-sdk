@@ -71,7 +71,7 @@ class TerminalMixin:
             return terminal
         else:
             msg = resp.content.decode()
-            if msg.find("unique"):
+            if msg.find("unique") >= 0:
                 msg = "The name have been used: {}".format(name)
             logger.error(msg)
             return None
