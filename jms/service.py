@@ -79,7 +79,7 @@ class AppService(Service):
             user = self.get_profile()
             if not user:
                 msg = "Connect server error or access key is invalid, " \
-                      "remove `./keys/.access_key` run again"
+                      "remove `./data/keys/.access_key` run again"
                 logger.error(msg)
                 delay += 3
                 time.sleep(3)
