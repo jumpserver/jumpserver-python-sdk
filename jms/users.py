@@ -88,6 +88,8 @@ class UsersMixin:
         except (RequestError, ResponseError):
             return None
 
+        if resp.status_code == 403:
+            logger.error("Error code 403, permission deny, access key error")
         user = User.from_json(resp.json())
         return user
 

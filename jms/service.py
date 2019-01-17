@@ -75,7 +75,7 @@ class AppService(Service):
 
     def valid_auth(self):
         delay = 1
-        while delay < 10:
+        while delay < 100:
             user = self.get_profile()
             if not user:
                 msg = "Connect server error or access key is invalid, " \
