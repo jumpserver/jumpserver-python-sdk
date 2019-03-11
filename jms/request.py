@@ -92,7 +92,7 @@ class Http(object):
             if pk and '%s' in path:
                 path = path % pk
         else:
-            path = '/'
+            path = api_name
 
         request_headers = kwargs.get('headers', {})
         default_headers = self.default_headers or {}

@@ -21,6 +21,7 @@ class PermsMixin:
             'user_id': user_id,
             'asset_id': asset_id,
             'system_user_id': system_user_id,
+            'cache_policy': '1'
         }
         try:
             resp = self.http.get(
@@ -34,14 +35,16 @@ class PermsMixin:
         else:
             return False
 
-    def get_user_assets(self, user):
+    def get_user_assets(self, user, cache_policy='0'):
         """获取用户被授权的资产列表
         [{'hostname': 'x', 'ip': 'x', ...,
          'system_users_granted': [{'id': 1, 'username': 'x',..}]
         ]
         """
         try:
-            resp = self.http.get('user-assets', pk=user.id, use_auth=True)
+            params = {'cache_policy': cache_policy}
+            resp = self.http.get('user-assets', pk=user.id,
+                                 use_auth=True, params=params)
         except (RequestError, ResponseError) as e:
             logger.error("{}".format(e))
             return []
@@ -52,6 +55,7 @@ class PermsMixin:
         else:
             return []
 
+    # Deprecation
     def get_user_assets_paging(self, user, offset=0, limit=60):
         """分页获取用户被授权的资产列表
         :return:
@@ -75,6 +79,7 @@ class PermsMixin:
         else:
             return [], 0
 
+    # Deprecation
     def get_search_user_granted_assets(self, user, value):
         """ 通过value(hostname, ip, comment)查询用户被授权的资产
         :return:
@@ -95,12 +100,14 @@ class PermsMixin:
         else:
             return []
 
-    def get_user_asset_groups(self, user):
+    def get_user_asset_groups(self, user, cache_policy='0'):
         """获取用户授权的资产组列表
         [{'name': 'group1', 'comment': 'x', "assets_granted": ["id": "", "],}, ..]
         """
         try:
-            resp = self.http.get('user-nodes-assets', pk=user.id, use_auth=True)
+            params = {'cache_policy': cache_policy}
+            resp = self.http.get('user-nodes-assets', pk=user.id,
+                                 use_auth=True, params=params)
         except (ResponseError, RequestError):
             return []
 
