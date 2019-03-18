@@ -75,11 +75,11 @@ class AppService(Service):
 
     def valid_auth(self):
         delay = 1
-        while delay < 10:
+        while delay < 100:
             user = self.get_profile()
             if not user:
                 msg = "Connect server error or access key is invalid, " \
-                      "remove `./keys/.access_key` run again"
+                      "remove `./data/keys/.access_key` run again"
                 logger.error(msg)
                 delay += 3
                 time.sleep(3)

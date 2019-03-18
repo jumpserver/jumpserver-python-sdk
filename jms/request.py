@@ -9,9 +9,11 @@ from requests.structures import CaseInsensitiveDict
 
 from .exception import RequestError, ResponseError, RegisterError
 from .url import API_URL_MAPPING
+from .utils import get_logger
 
 _USER_AGENT = 'jms-sdk-py'
 CACHED_TTL = os.environ.get('CACHED_TTL', 30)
+logger = get_logger(__file__)
 
 
 class HttpRequest(object):
@@ -69,12 +71,16 @@ class Http(object):
     @staticmethod
     def clean_result(resp):
         if resp.status_code >= 500:
-            raise ResponseError("Response code is {0.status_code}: {0.text}".format(resp))
+            msg = "Response code is {0.status_code}: {0.text}".format(resp)
+            logger.error(msg)
+            raise ResponseError(msg)
 
         try:
             _ = resp.json()
         except (json.JSONDecodeError, simplejson.scanner.JSONDecodeError):
-            raise ResponseError("Response json couldn't be decode: {0.text}".format(resp))
+            msg = "Response json couldn't be decode: {0.text}".format(resp)
+            logger.error(msg)
+            raise ResponseError(msg)
         else:
             return resp
 
@@ -86,7 +92,7 @@ class Http(object):
             if pk and '%s' in path:
                 path = path % pk
         else:
-            path = '/'
+            path = api_name
 
         request_headers = kwargs.get('headers', {})
         default_headers = self.default_headers or {}
@@ -99,14 +105,18 @@ class Http(object):
                           **kwargs)
         if use_auth:
             if not self.auth:
-                raise RequestError('Authentication required')
+                msg = 'Authentication required, but not provide'
+                logger.error(msg)
+                raise RequestError(msg)
             else:
                 self.auth.sign_request(req)
 
         try:
             resp = req.do()
         except (requests.ConnectionError, requests.ConnectTimeout) as e:
-            raise RequestError("Connect endpoint {} error: {}".format(self.endpoint, e))
+            msg = "Connect endpoint {} error: {}".format(self.endpoint, e)
+            logger.error(msg)
+            raise RequestError(msg)
 
         return self.clean_result(resp)
 

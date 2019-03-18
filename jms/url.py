@@ -18,6 +18,7 @@ API_URL_MAPPING = {
     'user-nodes-assets': '/api/perms/v1/user/%s/nodes-assets/',
     'my-profile': '/api/users/v1/profile/',
     'system-user-auth-info': '/api/assets/v1/system-user/%s/auth-info/',
+    'system-user-asset-auth-info': '/api/assets/v1/system-user/%s/asset/%s/auth-info/',
     'validate-user-asset-permission': '/api/perms/v1/asset-permission/user/validate/',
     'finish-task': '/api/terminal/v1/tasks/%s/',
     'asset': '/api/assets/v1/assets/%s/',

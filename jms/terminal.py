@@ -72,11 +72,11 @@ class TerminalMixin:
         else:
             msg = resp.content.decode()
             if msg.find("unique"):
-                msg = "The name have been used: {}".format(name)
+                msg = "The name have been used: {} {}".format(name, msg)
             logger.error(msg)
             return None
 
-    def terminal_heartbeat(self, sessions):
+    def terminal_heartbeat(self, data):
         """和Jumpserver维持心跳, 当Terminal断线后,jumpserver可以知晓
 
         :return tasks that this terminal need handle
@@ -93,24 +93,6 @@ class TerminalMixin:
             "session_online": 10
         }
         """
-        p = psutil.Process(os.getpid())
-        cpu_used = p.cpu_percent(interval=1.0)
-        memory_used = int(p.memory_info().rss / 1024 / 1024)
-        connections = len(p.connections())
-        threads = p.num_threads()
-        session_online = len([s for s in sessions if not s["is_finished"]])
-        # logger.debug("CPU: {} MEM: {}M CONN: {} THRE: {} SESS: {}".format(
-        #     cpu_used, memory_used, connections, threads, session_online
-        # ))
-        data = {
-            "cpu_used": cpu_used,
-            "memory_used": memory_used,
-            "connections": connections,
-            "threads": threads,
-            "boot_time": p.create_time(),
-            "session_online": session_online,
-            "sessions": sessions,
-        }
         try:
             resp = self.http.post('terminal-heartbeat', data=data, use_auth=True)
         except (ResponseError, RequestError) as e:
