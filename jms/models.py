@@ -115,6 +115,26 @@ class SystemUser(Decoder):
     priority = 0
     private_key = None
     login_mode = ""
+    actions = []
+
+    def actions_is_allowed(self, actions):
+        _actions = list(set(actions).intersection(set(self.actions)))
+        return bool(_actions)
+
+    @property
+    def allow_connect(self):
+        actions = ['all', 'connect']
+        return self.actions_is_allowed(actions)
+
+    @property
+    def allow_upload_file(self):
+        actions = ['all', 'upload_file']
+        return self.actions_is_allowed(actions)
+
+    @property
+    def allow_download_file(self):
+        actions = ['all', 'download_file']
+        return self.actions_is_allowed(actions)
 
     def __str__(self):
         return self.username
