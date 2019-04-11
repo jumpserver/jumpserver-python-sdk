@@ -53,6 +53,27 @@ class AssetsMixin:
         else:
             return None
 
+    def get_system_user_from_perms(self, user, asset_id, system_user_id):
+        """
+        获取 user 被授权的 asset 中的对应的 系统用户
+        :param user:
+        :param asset_id:
+        :param system_user_id:
+        :return:
+        """
+
+        try:
+            resp = self.http.get('system-user-from-perms',
+                                 pk=(user.id, asset_id, system_user_id))
+            print('RESP: {}'.format(resp.json()))
+        except (RequestError, ResponseError):
+            return None
+        if resp.status_code == 200:
+            system_user = SystemUser.from_json(resp.json())
+            return system_user
+        else:
+            return None
+
     def get_system_user_cmd_filter_rules(self, system_user_id):
         try:
             resp = self.http.get('system-user-cmd-filter-rule-list', pk=system_user_id)

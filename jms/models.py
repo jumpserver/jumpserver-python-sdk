@@ -136,6 +136,10 @@ class SystemUser(Decoder):
         actions = ['all', 'download_file']
         return self.actions_is_allowed(actions)
 
+    @property
+    def has_file_actions(self):
+        return self.allow_upload_file or self.allow_download_file
+
     def __str__(self):
         return self.username
 

@@ -24,6 +24,7 @@ API_URL_MAPPING = {
     'asset': '/api/assets/v1/assets/%s/',
     'asset-list': '/api/assets/v1/assets/',
     'system-user': '/api/assets/v1/system-user/%s',
+    'system-user-from-perms': "/api/perms/v1/user/%s/assets/%s/system_users/%s/",
     'user-profile': '/api/users/v1/profile/',
     'user-user': '/api/users/v1/users/%s/',
     'terminal-config': '/api/terminal/v1/terminal/config/',
