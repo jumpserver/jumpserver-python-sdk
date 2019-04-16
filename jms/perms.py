@@ -15,12 +15,13 @@ class PermsMixin:
         self.auth = auth
         self.http = Http(endpoint, auth=self.auth)
 
-    def validate_user_asset_permission(self, user_id, asset_id, system_user_id):
-        """验证用户是否有登录该资产的权限"""
+    def validate_user_asset_permission(self, user_id, asset_id, system_user_id, action_name):
+        """验证用户对该资产的actions权限(连接、上传、下载)"""
         params = {
             'user_id': user_id,
             'asset_id': asset_id,
             'system_user_id': system_user_id,
+            'action_name': action_name,
             'cache_policy': '1'
         }
         try:
