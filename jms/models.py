@@ -115,6 +115,7 @@ class SystemUser(Decoder):
     priority = 0
     private_key = None
     login_mode = ""
+    actions = []
 
     def __str__(self):
         return self.username
