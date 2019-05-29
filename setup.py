@@ -27,6 +27,7 @@ setup(
     version=version,
     description='Jumpserver python sdk tools',
     long_description=readme,
+    long_description_content_type="text/markdown",
     keywords='jms jumpserver',
     packages=['jms'],
     author='Jumpserver team',
