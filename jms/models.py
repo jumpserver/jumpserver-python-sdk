@@ -113,8 +113,7 @@ class Asset(Decoder):
         for protocol in self.protocols:
             if protocol['name'].lower() == 'ssh':
                 return protocol['port']
-        else:
-            return 22
+        return 22
 
     def __str__(self):
         return self.hostname
