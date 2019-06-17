@@ -108,12 +108,25 @@ class Asset(Decoder):
     def has_protocol(self, name):
         return name in self.protocols_name
 
+    def get_port_by_name(self, name):
+        for protocol in self.protocols:
+            if protocol['name'].lower() == name:
+                return protocol['port']
+        return None
+
     @property
     def ssh_port(self):
-        for protocol in self.protocols:
-            if protocol['name'].lower() == 'ssh':
-                return protocol['port']
-        return 22
+        port = self.get_port_by_name('ssh')
+        if port is None:
+            port = 22
+        return port
+
+    @property
+    def telnet_port(self):
+        port = self.get_port_by_name('telnet')
+        if port is None:
+            port = 23
+        return port
 
     def __str__(self):
         return self.hostname
