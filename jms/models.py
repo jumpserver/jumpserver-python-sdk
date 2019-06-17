@@ -66,6 +66,7 @@ class Asset(Decoder):
     ip = ""
     protocol = ""
     port = 22
+    protocols = []
     system_users_granted = []
     is_active = False
     system_users_join = ''
@@ -96,6 +97,23 @@ class Asset(Decoder):
         if self._system_users_name_list:
             return self._system_users_name_list
         return '[' + ', '.join([s.name for s in self.system_users_granted]) + ']'
+
+    @property
+    def protocols_name(self):
+        names = []
+        for protocol in self.protocols:
+            names.append(protocol['name'])
+        return names
+
+    def has_protocol(self, name):
+        return name in self.protocols_name
+
+    @property
+    def ssh_port(self):
+        for protocol in self.protocols:
+            if protocol['name'].lower() == 'ssh':
+                return protocol['port']
+        return 22
 
     def __str__(self):
         return self.hostname
