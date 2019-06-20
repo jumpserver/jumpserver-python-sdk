@@ -102,7 +102,8 @@ class Asset(Decoder):
     def protocols_name(self):
         names = []
         for protocol in self.protocols:
-            names.append(protocol['name'])
+            _name, port = protocol.split('/')
+            names.append(_name)
         return names
 
     def has_protocol(self, name):
@@ -110,8 +111,9 @@ class Asset(Decoder):
 
     def get_port_by_name(self, name):
         for protocol in self.protocols:
-            if protocol['name'].lower() == name:
-                return protocol['port']
+            _name, port = protocol.split('/')
+            if _name.lower() == name:
+                return port
         return None
 
     @property
