@@ -9,7 +9,7 @@ import re
 from .utils import ssh_key_string_to_obj
 
 
-class Decoder:
+class Decoder(object):
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             if hasattr(self, k):
@@ -23,7 +23,10 @@ class Decoder:
                 try:
                     if len(v.strip().split()) == 2:
                         v += " +0000"
-                    v = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S %z")
+                    try:
+                        v = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S %z")
+                    except ValueError:
+                        v = datetime.datetime.strptime(' '.join(v.split()[:2]), "%Y-%m-%d %H:%M:%S")
                 except TypeError:
                     pass
             if hasattr(self, k):
@@ -86,7 +89,7 @@ class Asset(Decoder):
             json_dict["system_users_granted"] = system_users_granted
         except KeyError:
             pass
-        return super().from_json(json_dict)
+        return super(Asset, cls).from_json(json_dict)
 
     @property
     def system_users_name_list(self):
@@ -169,7 +172,7 @@ class AssetGroup(Decoder):
     def from_json(cls, json_dict):
         assets_granted = Asset.from_multi_json(json_dict["assets_granted"])
         json_dict["assets_granted"] = assets_granted
-        return super().from_json(json_dict)
+        return super(AssetGroup, cls).from_json(json_dict)
 
     def __str__(self):
         return self.name
@@ -234,7 +237,7 @@ class Domain(Decoder):
 
     @classmethod
     def from_json(cls, json_dict):
-        data = super().from_json(json_dict)
+        data = super(Domain, cls).from_json(json_dict)
         gateways = Gateway.from_multi_json(json_dict["gateways"])
         data.gateways = gateways
         return data
@@ -265,9 +268,6 @@ class CommandFilterRule(Decoder):
     __pattern = None
 
     DENY, ALLOW, UNKNOWN = range(3)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
     @property
     def _pattern(self):
@@ -307,7 +307,7 @@ class ServiceAccount(Decoder):
 
     @classmethod
     def from_json(cls, json_dict):
-        data = super().from_json(json_dict)
+        data = super(ServiceAccount, cls).from_json(json_dict)
         access_key = AccessKey.from_json(json_dict.get("access_key", {}))
         data.access_key = access_key
         return data
@@ -325,7 +325,7 @@ class TerminalRegistration(Terminal):
 
     @classmethod
     def from_json(cls, json_dict):
-        data = super().from_json(json_dict)
+        data = super(TerminalRegistration, cls).from_json(json_dict)
         service_account = ServiceAccount.from_json(json_dict.get("service_account", {}))
         data.service_account = service_account
         return data

@@ -16,6 +16,7 @@ from io import StringIO
 import paramiko
 import pyte
 import pytz
+from .compat import str
 from email.utils import formatdate
 
 
