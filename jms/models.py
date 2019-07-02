@@ -6,7 +6,9 @@ import random
 from hashlib import md5
 import re
 
-from .utils import ssh_key_string_to_obj
+from .utils import ssh_key_string_to_obj, get_logger
+
+logger = get_logger(__file__)
 
 
 class Decoder:
@@ -264,7 +266,7 @@ class CommandFilterRule(Decoder):
     action = {}
     __pattern = None
 
-    DENY, ALLOW, UNKNOWN = range(3)
+    DENY, ALLOW, UNKNOWN, ERROR = range(4)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -275,7 +277,8 @@ class CommandFilterRule(Decoder):
             return self.__pattern
         if self.type['value'] == 'command':
             regex = []
-            for cmd in self.content.split('\r\n'):
+            content = self.content.replace('\r\n', '\n')
+            for cmd in content.split('\n'):
                 cmd = cmd.replace(' ', '\s+')
                 regex.append(r'\b{0}\b'.format(cmd))
             self.__pattern = re.compile(r'{}'.format('|'.join(regex)))
@@ -284,7 +287,12 @@ class CommandFilterRule(Decoder):
         return self.__pattern
 
     def match(self, data):
-        found = self._pattern.search(data)
+        try:
+            found = self._pattern.search(data)
+        except Exception as e:
+            logger.error(e)
+            return self.ERROR, ''
+
         if not found:
             return self.UNKNOWN, ''
 
