@@ -5,6 +5,7 @@ import datetime
 import random
 from hashlib import md5
 import re
+from collections import OrderedDict
 
 from .utils import ssh_key_string_to_obj, get_logger
 
@@ -101,22 +102,22 @@ class Asset(Decoder):
         return '[' + ', '.join([s.name for s in self.system_users_granted]) + ']'
 
     @property
-    def protocols_name(self):
-        names = []
-        for protocol in self.protocols:
-            _name, port = protocol.split('/')
-            names.append(_name)
-        return names
+    def protocols_as_dict(self):
+        d = OrderedDict()
+        for i in self.protocols:
+            if '/' not in i:
+                continue
+            name, port = i.split('/')[:2]
+            if not all([name, port]):
+                continue
+            d[name] = int(port)
+        return d
 
     def has_protocol(self, name):
-        return name in self.protocols_name
+        return name in self.protocols_as_dict
 
     def get_port_by_name(self, name):
-        for protocol in self.protocols:
-            _name, port = protocol.split('/')
-            if _name.lower() == name:
-                return port
-        return None
+        return self.protocols_as_dict.get(name, 22)
 
     @property
     def ssh_port(self):
