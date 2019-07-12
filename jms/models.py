@@ -27,7 +27,7 @@ class Decoder:
                     if len(v.strip().split()) == 2:
                         v += " +0000"
                     v = datetime.datetime.strptime(v, "%Y-%m-%d %H:%M:%S %z")
-                except TypeError:
+                except (TypeError, ValueError):
                     pass
             if hasattr(self, k):
                 setattr(self, k, v)
@@ -51,7 +51,6 @@ class User(Decoder):
     phone = ""
     comment = ""
     access_key = ""
-    date_expired = datetime.datetime.now()
 
     def __bool__(self):
         return self.id != 0

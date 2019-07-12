@@ -4,18 +4,13 @@
 #
 import hashlib
 import logging
-import re
-import os
 import threading
 import base64
 import calendar
 import time
-import datetime
 from io import StringIO
 
 import paramiko
-import pyte
-import pytz
 from email.utils import formatdate
 
 
