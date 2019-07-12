@@ -37,6 +37,7 @@ class HttpRequest(object):
         self.headers = CaseInsensitiveDict(headers)
         if content_type:
             self.headers['Content-Type'] = content_type
+        self.headers['User-Agent'] = _USER_AGENT
         if data:
             self.data = json.dumps(data)
         else:
