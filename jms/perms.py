@@ -10,6 +10,7 @@ logger = get_logger(__file__)
 
 
 class PermsMixin:
+
     def __init__(self, endpoint, auth=None):
         self.endpoint = endpoint
         self.auth = auth
@@ -36,25 +37,30 @@ class PermsMixin:
         else:
             return False
 
-    def get_user_assets(self, user, cache_policy='0'):
+    def get_user_assets(self, user, cache_policy='0', etag=None):
         """获取用户被授权的资产列表
         [{'hostname': 'x', 'ip': 'x', ...,
          'system_users_granted': [{'id': 1, 'username': 'x',..}]
         ]
         """
         try:
+            headers = {}
+            if etag and cache_policy in ['1', 1]:
+                headers["If-None-Match"] = '%s' % etag
             params = {'cache_policy': cache_policy}
-            resp = self.http.get('user-assets', pk=user.id,
+            resp = self.http.get('user-assets', pk=user.id, headers=headers,
                                  use_auth=True, params=params)
         except (RequestError, ResponseError) as e:
             logger.error("{}".format(e))
-            return []
+            return [], None
 
         if resp.status_code == 200:
             assets = Asset.from_multi_json(resp.json())
-            return assets
+            return assets, resp.headers.get("ETag")
+        elif resp.status_code == 304:
+            return None, None
         else:
-            return []
+            return [], None
 
     # Deprecation
     def get_user_assets_paging(self, user, offset=0, limit=60):
@@ -101,19 +107,24 @@ class PermsMixin:
         else:
             return []
 
-    def get_user_asset_groups(self, user, cache_policy='0'):
+    def get_user_asset_groups(self, user, cache_policy='0', etag=None):
         """获取用户授权的资产组列表
         [{'name': 'group1', 'comment': 'x', "assets_granted": ["id": "", "],}, ..]
         """
         try:
+            headers = {}
+            if etag and cache_policy in ['1', 1]:
+                headers["If-None-Match"] = '%s' % etag
             params = {'cache_policy': cache_policy}
-            resp = self.http.get('user-nodes-assets', pk=user.id,
+            resp = self.http.get('user-nodes-assets', pk=user.id, headers=headers,
                                  use_auth=True, params=params)
         except (ResponseError, RequestError):
-            return []
+            return [], None
 
         if resp.status_code == 200:
             asset_groups = AssetGroup.from_multi_json(resp.json())
+            return asset_groups, resp.headers.get("ETag")
+        elif resp.status_code == 304:
+            return None, None
         else:
-            asset_groups = []
-        return asset_groups
+            return [], None
