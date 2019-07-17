@@ -273,20 +273,31 @@ class CommandFilterRule(Decoder):
 
     @property
     def _pattern(self):
-        if self.__pattern:
+        if self.__pattern is not None:
             return self.__pattern
         if self.type['value'] == 'command':
             regex = []
             content = self.content.replace('\r\n', '\n')
             for cmd in content.split('\n'):
-                cmd = cmd.replace(' ', '\s+')
-                regex.append(r'\b{0}\b'.format(cmd))
-            self.__pattern = re.compile(r'{}'.format('|'.join(regex)))
+                cmd = re.escape(cmd)
+                cmd = cmd.replace('\\ ', '\s+')
+                if cmd[-1].isalpha():
+                    regex.append(r'\b{0}\b'.format(cmd))
+                else:
+                    regex.append(r'\b{0}'.format(cmd))
+            s = r'{}'.format('|'.join(regex))
         else:
-            self.__pattern = re.compile(r'{0}'.format(self.content))
+            s = r'{0}'.format(self.content)
+        try:
+            self.__pattern = re.compile(s)
+        except:
+            self.__pattern = ''
         return self.__pattern
 
     def match(self, data):
+        if not self._pattern:
+            return self.UNKNOWN, ''
+
         try:
             found = self._pattern.search(data)
         except Exception as e:
