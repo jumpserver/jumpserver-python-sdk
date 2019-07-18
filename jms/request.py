@@ -76,14 +76,14 @@ class Http(object):
             logger.error(msg)
             raise ResponseError(msg)
 
-        try:
-            _ = resp.json()
-        except (json.JSONDecodeError, simplejson.scanner.JSONDecodeError):
-            msg = "Response json couldn't be decode: {0.text}".format(resp)
-            logger.error(msg)
-            raise ResponseError(msg)
-        else:
-            return resp
+        if resp.status_code == 200:
+            try:
+                _ = resp.json()
+            except (json.JSONDecodeError, simplejson.scanner.JSONDecodeError):
+                msg = "Response json couldn't be decode: {0.text}".format(resp)
+                logger.error(msg)
+                raise ResponseError(msg)
+        return resp
 
     def do(self, api_name=None, pk=None, method='get', use_auth=True,
            data=None, params=None, content_type='application/json', **kwargs):
