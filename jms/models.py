@@ -159,6 +159,13 @@ class SystemUser(Decoder):
         return self.username
 
 
+class Node(Decoder):
+    id = 0
+    name = ""
+    key = ""
+    assets_amount = 0
+
+
 class AssetGroup(Decoder):
     id = 0
     name = ""

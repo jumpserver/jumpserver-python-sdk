@@ -14,6 +14,8 @@ API_URL_MAPPING = {
     'user-auth': '/api/authentication/v1/auth/',
     'user-otp-auth': '/api/authentication/v1/otp/auth/',
     'user-assets': '/api/perms/v1/users/%s/assets/',
+    "user-nodes": '/api/perms/v1/users/%s/nodes/',
+    "user-node-assets": '/api/perms/v1/users/%s/nodes/%s/assets/',
     'user-asset-groups': '/api/perms/v1/users/%s/nodes-assets/',
     'user-nodes-assets': '/api/perms/v1/users/%s/nodes-assets/',
     'my-profile': '/api/users/v1/profile/',

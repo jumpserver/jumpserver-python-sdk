@@ -2,7 +2,7 @@
 #
 
 from .exception import ResponseError, RequestError
-from .models import Asset, AssetGroup
+from .models import Asset, AssetGroup, Node
 from .request import Http
 from .utils import get_logger
 
@@ -100,6 +100,43 @@ class PermsMixin:
         except (RequestError, ResponseError) as e:
             logger.error("{}".format(e))
             return []
+
+        if resp.status_code == 200:
+            assets = Asset.from_multi_json(resp.json())
+            return assets
+        else:
+            return []
+
+    def get_user_nodes(self, user, cache_policy='0', etag=None):
+        """获取用户授权的资产组列表
+        [{'value': 'node1', 'comment': 'x', "key": "", "id": ""]
+        """
+        try:
+            headers = {}
+            if etag and cache_policy in ['1', 1]:
+                headers["If-None-Match"] = '%s' % etag
+            params = {'cache_policy': cache_policy}
+            resp = self.http.get('user-nodes', pk=user.id, headers=headers,
+                                 use_auth=True, params=params)
+        except (ResponseError, RequestError):
+            return [], None
+
+        if resp.status_code == 200:
+            nodes = Node.from_multi_json(resp.json())
+            return nodes, resp.headers.get("ETag")
+        elif resp.status_code == 304:
+            return None, None
+        else:
+            return [], None
+
+    def get_user_node_assets(self, user, node, cache_policy="0"):
+        try:
+            headers = {}
+            params = {'cache_policy': cache_policy, 'all': '1'}
+            resp = self.http.get('user-node-assets', pk=(user.id, node.id),
+                                 headers=headers, use_auth=True, params=params)
+        except (ResponseError, RequestError):
+            return [], None
 
         if resp.status_code == 200:
             assets = Asset.from_multi_json(resp.json())
