@@ -153,16 +153,17 @@ class SystemUser(Decoder):
     actions = []
 
     def __str__(self):
-        return self.username
+        return self.username or self.name
 
     def __repr__(self):
-        return self.username
+        return self.username or self.name
 
 
 class Node(Decoder):
     id = 0
     name = ""
     key = ""
+    value = ""
     assets_amount = 0
 
 
